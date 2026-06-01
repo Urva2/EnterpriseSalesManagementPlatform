@@ -28,6 +28,6 @@ public class SalesPerson {
     @Column
     private String phoneno;
     @OneToMany(mappedBy = "salesPerson")
-    @JsonManagedReference(value = "salesperson-order")
+    //@JsonManagedReference(value = "salesperson-order")
     private List<SaleOrder> saleOrderList;
 }

@@ -15,5 +15,7 @@ public class ProductRequestDto {
     @NotBlank(message = "ItemWeight is Required.")
     private String itemWeight;
     @Positive(message = "Price of the item must be Positive.")
-    private double price;
+    private Double price;
+    @Positive(message = "stockQuantity of the item must be Positive.")
+    private Integer stockQuantity;
 }

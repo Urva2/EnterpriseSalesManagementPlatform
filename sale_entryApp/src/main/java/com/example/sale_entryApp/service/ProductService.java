@@ -20,6 +20,7 @@ public class ProductService {
     public ProductMapper productMapper;
     public ProductDTO addProduct(ProductRequestDto dto){
         Product product=productMapper.toEntity(dto);
+        System.out.println("stockQuantity:"+product.getStockQuantity());
         Product existing=productRepo.findByName(product.getName());
         if(existing!=null && Objects.equals(existing.getItemWeight(), product.getItemWeight())){
             throw new RuntimeException("Item Exist with Same Name and ItemWeight:"+existing.getName()+","+existing.getItemWeight());
@@ -35,26 +36,31 @@ public class ProductService {
         }
         throw new RuntimeException("Product Not Exist With ID:"+id);
     }
-    public List<ProductDTO> findProducts(){
-        List<Product> products=productRepo.findAll();
-        if(!products.isEmpty()){
+    public List<ProductDTO> findProducts() {
+        List<Product> products = productRepo.findAll();
+        if (!products.isEmpty()) {
             return productMapper.toDtoProductsList(products);
         }
         throw new RuntimeException("Products Not Found");
     }
     public ProductDTO updateproduct(ProductRequestDto productRequestDto,int id){
         Product product=productRepo.findById(id);
+        System.out.println("stockQuantity in updation:"+product.getStockQuantity());
         boolean isUpdated=false;
         if(productRequestDto.getName()!=null){
             product.setName(productRequestDto.getName());
             isUpdated=true;
         }
-        if(productRequestDto.getPrice()!=0){
+        if(productRequestDto.getPrice()!=null && !productRequestDto.getPrice().equals(product.getPrice())){
             product.setPrice(productRequestDto.getPrice());
             isUpdated=true;
         }
-        if(productRequestDto.getItemWeight()!=null){
+        if(productRequestDto.getItemWeight()!=null && !productRequestDto.getStockQuantity().equals(product.getStockQuantity())){
             product.setItemWeight(productRequestDto.getItemWeight());
+            isUpdated=true;
+        }
+        if(productRequestDto.getStockQuantity()!=null){
+            product.setStockQuantity(productRequestDto.getStockQuantity());
             isUpdated=true;
         }
         if(isUpdated){

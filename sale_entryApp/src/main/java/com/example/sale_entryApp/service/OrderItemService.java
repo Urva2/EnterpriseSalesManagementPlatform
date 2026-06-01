@@ -23,7 +23,7 @@ public class OrderItemService {
     public OrderItem addproduct(int productId,int orderId) {
         SaleOrder saleOrder = saleOrderRepo.findById(orderId);
         Product product = productRepo.findById(productId);
-        if (saleOrder != null && product != null) {
+        if (saleOrder != null && product != null && product.getStockQuantity()>0) {
             List<OrderItem> orderItemList = saleOrder.getOrderItemList();
             if (!orderItemList.isEmpty()) {
                 for (OrderItem o : orderItemList) {
@@ -33,6 +33,8 @@ public class OrderItemService {
                     }
                 }
             }
+                product.setStockQuantity(product.getStockQuantity() - 1);
+                productRepo.save(product);
                 OrderItem orderItem = new OrderItem();
                 orderItem.setSaleOrder(saleOrder);
                 orderItem.setProduct(product);
@@ -54,33 +56,46 @@ public class OrderItemService {
                 saleOrderRepo.save(saleOrder);
                 return orderItem;
             }
-
-        throw new RuntimeException("Product or Saleorder Does not exist:");
+        System.out.println("StockQunt:"+product.getStockQuantity());
+        throw new RuntimeException("Product or Saleorder Does not exist or Product is Out of Quantity:");
 
     }
     public void plusproduct(int orderItmeId){
         OrderItem orderItem=orderItemRepo.findById(orderItmeId);
-        orderItem.setQuantity(orderItem.getQuantity()+1);
-        orderItem.setSubtotal(orderItem.getSubtotal()+orderItem.getPrice());
-        orderItemRepo.save(orderItem);
-        SaleOrder saleOrder=orderItem.getSaleOrder();
-        saleOrder.setTotal(saleOrder.calctotal(saleOrder.getOrderItemList()));
-        saleOrderRepo.save(saleOrder);
+        Product product =productRepo.findById(orderItem.getProduct().getId());
+        if(product.getStockQuantity()>0) {
+            product.setStockQuantity(product.getStockQuantity() - 1);
+            productRepo.save(product);
+            orderItem.setQuantity(orderItem.getQuantity() + 1);
+            orderItem.setSubtotal(orderItem.getSubtotal() + orderItem.getPrice());
+            orderItemRepo.save(orderItem);
+            SaleOrder saleOrder = orderItem.getSaleOrder();
+            saleOrder.setTotal(saleOrder.calctotal(saleOrder.getOrderItemList()));
+            saleOrderRepo.save(saleOrder);
+        }
+        else{
+            throw new RuntimeException("Sorry,Product is outof Stock!");
+        }
     }
     public void minusproduct(int orderItmeId){
         OrderItem orderItem=orderItemRepo.findById(orderItmeId);
+        Product product=orderItem.getProduct();
         if(orderItem==null){
             throw new RuntimeException("Please Create Order First And Then Decrease.");
         }
         else if(orderItem.getQuantity()>1) {            //When Quntity is More than 1
-            orderItem.setQuantity(orderItem.getQuantity() - 1);
+            product.setStockQuantity(product.getStockQuantity() + 1);
+            productRepo.save(product);
             orderItem.setSubtotal(orderItem.getSubtotal() - orderItem.getPrice());
+            orderItem.setQuantity(orderItem.getQuantity() - 1);
             orderItemRepo.save(orderItem);
             SaleOrder saleOrder=orderItem.getSaleOrder();
             saleOrder.setTotal(saleOrder.calctotal(saleOrder.getOrderItemList()));
             saleOrderRepo.save(saleOrder);
         }
         else{  //When Quantity is 1 or 0,then Will Delete OrderEntry and Update the Total Price in SaleOrder
+            product.setStockQuantity(product.getStockQuantity() + 1);
+            productRepo.save(product);
             SaleOrder saleOrder=orderItem.getSaleOrder();
             List<OrderItem> list=saleOrder.getOrderItemList();
             list.remove(orderItem);

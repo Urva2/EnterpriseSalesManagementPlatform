@@ -30,6 +30,7 @@ public class ProductController {
     public ResponseEntity<?> updateProduct(@RequestBody ProductRequestDto productRequestDto,@PathVariable int id)
     {
         try{
+            System.out.println("Hello,inside:updateproduct controller");
          ProductDTO productDTO=productService.updateproduct(productRequestDto,id);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(productDTO);
         }catch (RuntimeException e){

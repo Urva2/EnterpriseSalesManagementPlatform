@@ -22,8 +22,10 @@ public class Product {
     @Column(name="itemWeight",nullable = false)
     private String itemWeight;
     @Column(nullable = false)
-    private double price;
+    private Double price;
+    @Column(nullable = false)
+    private Integer stockQuantity;
     @OneToMany(mappedBy = "product")
-    @JsonManagedReference(value = "product-item")
+    //@JsonManagedReference(value = "product-item")
     private List<OrderItem> orderItemList;
 }

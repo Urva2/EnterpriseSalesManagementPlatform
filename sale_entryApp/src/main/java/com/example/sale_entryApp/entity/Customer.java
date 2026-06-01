@@ -25,6 +25,6 @@ public class Customer {
     @Column(nullable = false)
     private String phoneno;
     @OneToMany(mappedBy = "customer")
-    @JsonManagedReference(value = "customer-order")
+   // @JsonManagedReference(value = "customer-order")
     private List<SaleOrder> saleOrderList;
 }

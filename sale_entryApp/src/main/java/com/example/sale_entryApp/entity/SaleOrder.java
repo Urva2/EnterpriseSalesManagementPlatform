@@ -31,12 +31,12 @@ public class SaleOrder {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="c_id")
-    @JsonBackReference(value = "customer-order")
+    //@JsonBackReference(value = "customer-order")
     private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="sales_p_id")
-    @JsonBackReference(value = "salesperson-order")
+   // @JsonBackReference(value = "salesperson-order")
     private SalesPerson salesPerson;
 
     @OneToMany(mappedBy = "saleOrder",cascade = CascadeType.ALL)

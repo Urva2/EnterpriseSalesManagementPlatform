@@ -19,6 +19,7 @@ public interface ProductMapper {
     @Mapping(source="name",target="name")
     @Mapping(source="itemWeight",target="itemWeight")
     @Mapping(source="price",target="price")
+    @Mapping(source="stockQuantity",target="stockQuantity")
     ProductDTO productDto(Product product);
     List<ProductDTO> toDtoProductsList(List<Product> productList);
 }
