@@ -32,12 +32,12 @@ public class AuthService {
         );
         AuthenticatedUser authenticatedUser=(AuthenticatedUser) authentication.getPrincipal();
         String accessToken= authUtil.getAccessToken(authenticatedUser);
-        String arr[]=accessToken.split("\\.");
-        String header = new String(
-                Base64.getUrlDecoder().decode(arr[0]),
-                StandardCharsets.UTF_8
-        );
-        System.out.println(header);
+        String arr[]=accessToken.split("\\.");//For Debugging only.
+        String header = new String(  ////For Debugging only.
+                Base64.getUrlDecoder().decode(arr[0]),////For Debugging only.
+                StandardCharsets.UTF_8//For Debugging only.
+        );//For Debugging only.
+        System.out.println(header);//For Debugging only.
         return new LoginResponseDto(accessToken,authenticatedUser.getUsername());
     }
 }

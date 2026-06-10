@@ -12,7 +12,10 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name="product")
+@Table(name="product",indexes = {
+        @Index(name="idx_name",columnList = "name"),
+        @Index(name="idx_price",columnList = "price")
+    })
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

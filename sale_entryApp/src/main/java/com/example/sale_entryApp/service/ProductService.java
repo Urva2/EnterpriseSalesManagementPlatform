@@ -7,9 +7,10 @@ import com.example.sale_entryApp.entity.Product;
 import com.example.sale_entryApp.mapper.ProductMapper;
 import com.example.sale_entryApp.repository.ProductRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -18,6 +19,11 @@ public class ProductService {
     public ProductRepo productRepo;
     @Autowired
     public ProductMapper productMapper;
+    //10-6-26 name:urva
+    public Page<ProductDTO> getAllProduct(Pageable pageable) {
+        return productRepo.findAll(pageable).map(productMapper::productDto);
+    }
+
     public ProductDTO addProduct(ProductRequestDto dto){
         Product product=productMapper.toEntity(dto);
         System.out.println("stockQuantity:"+product.getStockQuantity());
@@ -36,13 +42,7 @@ public class ProductService {
         }
         throw new RuntimeException("Product Not Exist With ID:"+id);
     }
-    public List<ProductDTO> findProducts() {
-        List<Product> products = productRepo.findAll();
-        if (!products.isEmpty()) {
-            return productMapper.toDtoProductsList(products);
-        }
-        throw new RuntimeException("Products Not Found");
-    }
+
     public ProductDTO updateproduct(ProductRequestDto productRequestDto,int id){
         Product product=productRepo.findById(id);
         System.out.println("stockQuantity in updation:"+product.getStockQuantity());
@@ -55,11 +55,11 @@ public class ProductService {
             product.setPrice(productRequestDto.getPrice());
             isUpdated=true;
         }
-        if(productRequestDto.getItemWeight()!=null && !productRequestDto.getStockQuantity().equals(product.getStockQuantity())){
+        if(productRequestDto.getItemWeight()!=null && !productRequestDto.getItemWeight().equals(product.getItemWeight())){
             product.setItemWeight(productRequestDto.getItemWeight());
             isUpdated=true;
         }
-        if(productRequestDto.getStockQuantity()!=null){
+        if(productRequestDto.getStockQuantity()!=null && !productRequestDto.getStockQuantity().equals(product.getStockQuantity())){
             product.setStockQuantity(productRequestDto.getStockQuantity());
             isUpdated=true;
         }
@@ -68,5 +68,18 @@ public class ProductService {
             return productMapper.productDto(product);
         }
         throw new RuntimeException("Product Object Has Not Any Update Details!");
+    }
+    //10-6-26 name:urva
+    public Page<ProductDTO> findProductByName(String name, Pageable pageable) {
+        Page<Product> productPage;
+        // Check if the user provided a name to search for
+        if (name != null && !name.trim().isEmpty()) {
+            productPage = productRepo.findByNameContainingIgnoreCase(name, pageable);
+        } else {
+            // If no name is provided, just return all products paginated
+            productPage = productRepo.findAll(pageable);
+        }
+        // Map the resulting page to a DTO page
+        return productPage.map(productMapper::productDto);
     }
 }

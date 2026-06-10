@@ -1,11 +1,10 @@
 package com.example.sale_entryApp.dto.ResponseDto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor
 public class ProductDTO {
     private String name;

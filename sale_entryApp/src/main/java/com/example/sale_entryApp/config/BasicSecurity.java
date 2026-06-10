@@ -40,6 +40,8 @@ http.authorizeHttpRequests(configurer->
                         .requestMatchers(HttpMethod.POST,"/admin/register").permitAll()
                         .requestMatchers(HttpMethod.POST,"/auth/login").permitAll()
                         .requestMatchers(HttpMethod.PUT,"/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/products").hasAnyRole("SALES_PERSON", "ADMIN")
+                        .requestMatchers(HttpMethod.GET,"/products/search").hasAnyRole("SALES_PERSON", "ADMIN")
                         //.anyRequest().authenticated()
         );
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
