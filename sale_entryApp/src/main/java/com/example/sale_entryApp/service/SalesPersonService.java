@@ -1,12 +1,16 @@
 package com.example.sale_entryApp.service;
 
 import com.example.sale_entryApp.dto.RequestDto.SalesPersonRequestDto;
+import com.example.sale_entryApp.dto.RequestDto.UpdateProfileRequestDto;
+import com.example.sale_entryApp.dto.ResponseDto.AuthenticatedUser;
 import com.example.sale_entryApp.dto.ResponseDto.SalesPersonDTO;
 import com.example.sale_entryApp.entity.SalesPerson;
 import com.example.sale_entryApp.mapper.SalesPersonMapper;
 import com.example.sale_entryApp.repository.SaleOrderRepo;
 import com.example.sale_entryApp.repository.SalesPersonRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -55,5 +59,62 @@ PasswordEncoder passwordEncoder;
             return salesPersonMapper.toDtoSalesPeopleList(salesPeople);
         }
         throw new RuntimeException("Error!! SalesPeople Not Found.");
+    }
+
+    //Nidhi : 10/6/26
+    public SalesPersonDTO getMyProfile()
+    {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User is not authenticated.");
+        }
+        if (!(authentication.getPrincipal() instanceof AuthenticatedUser user)) {
+            throw new RuntimeException("Invalid user principal.");
+        }
+
+        int id = Math.toIntExact(user.getId());
+        SalesPerson salesPerson = salesPersonRepo.findById((int) id); //find the salesperson with that id
+        if(salesPerson == null)
+        {
+            throw new RuntimeException("SalesPerson not found with id: " + id);
+        }
+        return salesPersonMapper.salesPersonDto(salesPerson); //return the details
+    }
+
+    //Nidhi 10/6/26
+    public SalesPersonDTO updateMyProfile(UpdateProfileRequestDto updateProfileRequestDto)
+    {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User is not authenticated.");
+        }
+        if (!(authentication.getPrincipal() instanceof AuthenticatedUser user)) {
+            throw new RuntimeException("Invalid user principal.");
+        }
+
+        int id = Math.toIntExact(user.getId());
+        SalesPerson salesPerson = salesPersonRepo.findById((int) id);
+        if (salesPerson == null) {
+            throw new RuntimeException("SalesPerson not found with id: " + id);
+        }
+        String name = updateProfileRequestDto.getName();
+        String phone = updateProfileRequestDto.getPhone();
+        if(name!=null && !name.isBlank())
+        {
+           salesPerson.setName(name);
+        }
+        if(phone!=null && !phone.isBlank())
+        {
+            salesPerson.setPhoneno(phone);
+        }
+        if (name == null && phone == null) { //if there are no fields
+            throw new RuntimeException("No update fields provided.");
+        }
+        SalesPerson updated = salesPersonRepo.save(salesPerson);
+        return salesPersonMapper.salesPersonDto(updated);
     }
 }
