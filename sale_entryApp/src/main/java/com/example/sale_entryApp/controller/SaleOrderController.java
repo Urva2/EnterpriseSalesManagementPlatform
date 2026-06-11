@@ -159,6 +159,12 @@ public class SaleOrderController {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(e.getMessage());
         }
     }
+
+    @GetMapping("/my-orders")
+    public ResponseEntity<List<SaleOrderDTO>> getMyOrders()
+    {
+        return ResponseEntity.ok(saleOrderService.getMyOrders());
+    }
 }
 
 //http://localhost:8080/orders

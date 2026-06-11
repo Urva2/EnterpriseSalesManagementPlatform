@@ -1,12 +1,16 @@
 package com.example.sale_entryApp.service;
 
+import com.example.sale_entryApp.dto.ResponseDto.AuthenticatedUser;
 import com.example.sale_entryApp.dto.ResponseDto.SaleOrderDTO;
 import com.example.sale_entryApp.entity.*;
 import com.example.sale_entryApp.mapper.SaleOrderMapper;
 import com.example.sale_entryApp.repository.CustomerRepo;
+import com.example.sale_entryApp.repository.OrderItemRepo;
 import com.example.sale_entryApp.repository.SaleOrderRepo;
 import com.example.sale_entryApp.repository.SalesPersonRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,6 +26,8 @@ public class SaleOrderService {
     private CustomerRepo customerRepo;
     @Autowired
     private SaleOrderMapper saleOrderMapper;
+    @Autowired
+    private OrderItemRepo orderItemRepo;
 
     public SaleOrderDTO createSaleOrder(int salespersonId, int customerId) //crt-slorder
     {
@@ -145,6 +151,30 @@ public class SaleOrderService {
             return totalrev;
         }
         return totalrev;
+    }
+
+    public List<SaleOrderDTO> getMyOrders() {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User is not authenticated.");
+        }
+        if (!(authentication.getPrincipal() instanceof AuthenticatedUser user)) {
+            throw new RuntimeException("Invalid user principal.");
+        }
+
+        int id = Math.toIntExact(user.getId());
+
+        List<SaleOrder> orders = saleOrderRepo.findBySalesPersonId(id);
+
+        if (orders.isEmpty()) {
+            throw new RuntimeException("No orders found for current user.");
+        }
+
+        return orders.stream()
+                .map(saleOrderMapper::saleOrderDto)
+                .toList();
     }
 }
 
