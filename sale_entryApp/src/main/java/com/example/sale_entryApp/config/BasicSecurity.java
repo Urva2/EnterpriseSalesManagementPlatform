@@ -37,6 +37,8 @@ http.authorizeHttpRequests(configurer->
                         .requestMatchers("/orders/**").hasRole("SALES_PERSON")
                         .requestMatchers(HttpMethod.POST,"/salesperson/register").permitAll()
                         .requestMatchers(HttpMethod.POST,"/customers/register").hasRole("SALES_PERSON")
+                        .requestMatchers(HttpMethod.GET,"/customers").hasRole("SALES_PERSON")
+                        .requestMatchers(HttpMethod.GET,"/customers/search").hasRole("SALES_PERSON")
                         .requestMatchers(HttpMethod.POST,"/admin/register").permitAll()
                         .requestMatchers(HttpMethod.POST,"/auth/login").permitAll()
                         .requestMatchers(HttpMethod.PUT,"/products/**").hasRole("ADMIN")

@@ -64,12 +64,15 @@ PasswordEncoder passwordEncoder;
     //Nidhi : 10/6/26
     public SalesPersonDTO getMyProfile()
     {
+        // Get current logged-in user's authentication
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
 
+        //Ensure User is authenticated
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new RuntimeException("User is not authenticated.");
         }
+        //Ensure principal is our custom user type  
         if (!(authentication.getPrincipal() instanceof AuthenticatedUser user)) {
             throw new RuntimeException("Invalid user principal.");
         }

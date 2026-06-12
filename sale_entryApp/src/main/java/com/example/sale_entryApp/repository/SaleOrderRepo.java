@@ -1,6 +1,8 @@
 package com.example.sale_entryApp.repository;
 
 import com.example.sale_entryApp.entity.SaleOrder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -14,4 +16,5 @@ public interface SaleOrderRepo extends JpaRepository<SaleOrder,Integer> {
     List<SaleOrder> findByStatus(String status);
     List<SaleOrder> findBySalesPersonId(int s_personId);
     List<SaleOrder> findByDate(LocalDate date);
+    Page<SaleOrder> findBySalesPersonId(int id, Pageable pageable);
 }

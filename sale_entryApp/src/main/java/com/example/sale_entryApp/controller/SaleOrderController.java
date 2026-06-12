@@ -6,7 +6,10 @@ import com.example.sale_entryApp.entity.SaleOrder;
 import com.example.sale_entryApp.service.OrderItemService;
 import com.example.sale_entryApp.service.SaleOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.support.Repositories;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -161,9 +164,9 @@ public class SaleOrderController {
     }
 
     @GetMapping("/my-orders")
-    public ResponseEntity<List<SaleOrderDTO>> getMyOrders()
+    public ResponseEntity<Page<SaleOrderDTO>> getMyOrders(@PageableDefault(page=0,size = 10) Pageable pageable)
     {
-        return ResponseEntity.ok(saleOrderService.getMyOrders());
+        return ResponseEntity.ok(saleOrderService.getMyOrders(pageable));
     }
 }
 

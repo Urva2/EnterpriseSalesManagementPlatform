@@ -9,6 +9,8 @@ import com.example.sale_entryApp.repository.OrderItemRepo;
 import com.example.sale_entryApp.repository.SaleOrderRepo;
 import com.example.sale_entryApp.repository.SalesPersonRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -153,28 +155,28 @@ public class SaleOrderService {
         return totalrev;
     }
 
-    public List<SaleOrderDTO> getMyOrders() {
+    public Page<SaleOrderDTO> getMyOrders(Pageable pageable)
+    {
+        Page<SaleOrder> orders;
+
+        //Get the current user's authentication
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
 
+        //Ensure user is logged in
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new RuntimeException("User is not authenticated.");
         }
+
+        //Get custom authenticated user
         if (!(authentication.getPrincipal() instanceof AuthenticatedUser user)) {
             throw new RuntimeException("Invalid user principal.");
         }
 
-        int id = Math.toIntExact(user.getId());
-
-        List<SaleOrder> orders = saleOrderRepo.findBySalesPersonId(id);
-
-        if (orders.isEmpty()) {
-            throw new RuntimeException("No orders found for current user.");
-        }
-
-        return orders.stream()
-                .map(saleOrderMapper::saleOrderDto)
-                .toList();
+        //Fetch current user's orders and map to DTO
+        return saleOrderRepo
+                .findBySalesPersonId(Math.toIntExact(user.getId()), pageable)
+                .map(saleOrderMapper::saleOrderDto);
     }
 }
 
