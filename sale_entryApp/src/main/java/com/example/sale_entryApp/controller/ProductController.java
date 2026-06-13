@@ -49,10 +49,16 @@ public class ProductController {
         return ResponseEntity.ok(productDTOS);
     }
     //10-6-26 name:urva
-    @GetMapping("/seacrh")
-    public ResponseEntity<Page<?>> getAllProductByName(@RequestParam (defaultValue = "name") String keyword,
+    @GetMapping("/search")
+    public ResponseEntity<Page<?>> getAllProductByName(@RequestParam (required = false) String keyword,
                                                            @PageableDefault(page=0,size = 10) Pageable pageable){
-        Page<ProductDTO> productDTOS=productService.findProductByName(keyword,pageable);
+        Page<ProductDTO> productDTOS=productService.findAllProductByName(keyword,pageable);
         return ResponseEntity.ok(productDTOS);
+    }
+    //12-6-26 name:urva
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ProductDTO> deleteProduct(@PathVariable int id){
+        ProductDTO productDTO=productService.deleteProduct(id);
+        return ResponseEntity.ok(productDTO);
     }
 }

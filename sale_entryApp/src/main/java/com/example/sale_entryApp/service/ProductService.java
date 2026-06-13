@@ -19,9 +19,9 @@ public class ProductService {
     public ProductRepo productRepo;
     @Autowired
     public ProductMapper productMapper;
-    //10-6-26 name:urva
+    //10-6-26 name:urva ,changed 12-06
     public Page<ProductDTO> getAllProduct(Pageable pageable) {
-        return productRepo.findAll(pageable).map(productMapper::productDto);
+        return productRepo.findAllByIsActiveTrue(pageable).map(productMapper::productDto);
     }
 
     public ProductDTO addProduct(ProductRequestDto dto){
@@ -29,8 +29,15 @@ public class ProductService {
         System.out.println("stockQuantity:"+product.getStockQuantity());
         Product existing=productRepo.findByName(product.getName());
         if(existing!=null && Objects.equals(existing.getItemWeight(), product.getItemWeight())){
+            if(!existing.getIsActive()){
+                existing.setIsActive(true);
+                existing.setStockQuantity(product.getStockQuantity());
+                productRepo.save(existing);
+                return productMapper.productDto(existing);
+            }
             throw new RuntimeException("Item Exist with Same Name and ItemWeight:"+existing.getName()+","+existing.getItemWeight());
         }
+        product.setIsActive(true);
         Product saved=productRepo.save(product);
         return productMapper.productDto(saved);
     }
@@ -45,6 +52,9 @@ public class ProductService {
 
     public ProductDTO updateproduct(ProductRequestDto productRequestDto,int id){
         Product product=productRepo.findById(id);
+        if (!product.getIsActive()) {
+            throw new RuntimeException("Cannot update a deleted product!");
+        }
         System.out.println("stockQuantity in updation:"+product.getStockQuantity());
         boolean isUpdated=false;
         if(productRequestDto.getName()!=null){
@@ -70,16 +80,25 @@ public class ProductService {
         throw new RuntimeException("Product Object Has Not Any Update Details!");
     }
     //10-6-26 name:urva
-    public Page<ProductDTO> findProductByName(String name, Pageable pageable) {
+    public Page<ProductDTO> findAllProductByName(String name, Pageable pageable) {
         Page<Product> productPage;
         // Check if the user provided a name to search for
         if (name != null && !name.trim().isEmpty()) {
-            productPage = productRepo.findByNameContainingIgnoreCase(name, pageable);
+            productPage = productRepo.findByNameContainingIgnoreCaseAndIsActiveTrue(name, pageable);
         } else {
             // If no name is provided, just return all products paginated
-            productPage = productRepo.findAll(pageable);
+            productPage = productRepo.findAllByIsActiveTrue(pageable);
         }
         // Map the resulting page to a DTO page
         return productPage.map(productMapper::productDto);
+    }
+  public ProductDTO deleteProduct(int id){
+       Product product=productRepo.findById(id);
+       if(product!=null && product.getIsActive()){
+           product.setIsActive(false);
+           productRepo.save(product);
+           return productMapper.productDto(product);
+       }
+      throw new RuntimeException("Product Not Exist With ID:"+id);
     }
 }

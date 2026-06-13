@@ -9,6 +9,8 @@ import com.example.sale_entryApp.mapper.SalesPersonMapper;
 import com.example.sale_entryApp.repository.SaleOrderRepo;
 import com.example.sale_entryApp.repository.SalesPersonRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,14 +55,25 @@ PasswordEncoder passwordEncoder;
         }
         throw new RuntimeException("SalesPerson Not exist with Id:"+id);
     }
-    public List<SalesPersonDTO> findSalespersons(){
-        List<SalesPerson> salesPeople=salesPersonRepo.findAll();
-        if(!salesPeople.isEmpty()){
-            return salesPersonMapper.toDtoSalesPeopleList(salesPeople);
-        }
-        throw new RuntimeException("Error!! SalesPeople Not Found.");
+    //Urva :12-06
+    public Page<SalesPersonDTO> getAllSalesPersons(Pageable pageable) {
+        // Fetch the page from DB
+        Page<SalesPerson> salesPeoplePage = salesPersonRepo.findAll(pageable);
+        return salesPeoplePage.map(salesPersonMapper::salesPersonDto);
     }
+    //Urva :12-06
+    public Page<SalesPersonDTO> searchSalesPersonsByName(String name, Pageable pageable) {
+        Page<SalesPerson> salesPeoplePage;
 
+        // Check if the user provided a keyword to search for
+        if (name != null && !name.trim().isEmpty()) {
+            salesPeoplePage = salesPersonRepo.findByNameContainingIgnoreCase(name, pageable);
+        } else {
+            // Fallback: If no name is provided, return all salespersons
+            salesPeoplePage = salesPersonRepo.findAll(pageable);
+        }
+        return salesPeoplePage.map(salesPersonMapper::salesPersonDto);
+    }
     //Nidhi : 10/6/26
     public SalesPersonDTO getMyProfile()
     {

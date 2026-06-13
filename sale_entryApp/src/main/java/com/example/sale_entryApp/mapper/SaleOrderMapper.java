@@ -12,9 +12,11 @@ import java.util.List;
 public interface SaleOrderMapper {
     //Entity->DTO
     @BeanMapping(ignoreByDefault = true)
+    @Mapping(source="id",target="id")
     @Mapping(source="date",target="date")
     @Mapping(source="total",target="total")
     @Mapping(source="status",target="status")
+    @Mapping(source="customer.name",target="customerName")
     @Mapping(source = "orderItemList",target = "orderItemList")
     SaleOrderDTO saleOrderDto(SaleOrder saleOrder);
     List<SaleOrderDTO> toDtoSaleOrderList(List<SaleOrder> saleOrders);

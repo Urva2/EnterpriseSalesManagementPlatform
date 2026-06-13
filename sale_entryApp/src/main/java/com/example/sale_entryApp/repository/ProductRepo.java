@@ -10,5 +10,6 @@ public interface ProductRepo extends JpaRepository<Product,Integer> {
     Product findByName(String name);
     Product findById(int id);  //Just Writing it,but Spring Provide this
     Product findByItemWeight(String itemWeight);
-    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<Product> findByNameContainingIgnoreCaseAndIsActiveTrue(String name, Pageable pageable);
+    Page<Product> findAllByIsActiveTrue(Pageable pageable);
 }

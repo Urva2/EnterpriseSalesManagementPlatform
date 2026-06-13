@@ -15,6 +15,7 @@ public interface CustomerMapper {
     Customer toEntity(CustomerRequestDto customerDTO);
     //Entity->DTO
     @BeanMapping(ignoreByDefault = true)
+    @Mapping(source="id",target="id")
     @Mapping(source="name",target="name")
     @Mapping(source="address",target="address")
     @Mapping(source="phoneno",target="phoneno")

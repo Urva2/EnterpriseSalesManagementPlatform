@@ -14,7 +14,8 @@ import java.util.List;
 @Entity
 @Table(name="product",indexes = {
         @Index(name="idx_name",columnList = "name"),
-        @Index(name="idx_price",columnList = "price")
+        @Index(name="idx_price",columnList = "price"),
+        @Index(name="idx_active",columnList = "isActive")
     })
 public class Product {
     @Id
@@ -26,6 +27,8 @@ public class Product {
     private String itemWeight;
     @Column(nullable = false)
     private Double price;
+    @Column(nullable = false)
+    private Boolean isActive;
     @Column(nullable = false)
     private Integer stockQuantity;
     @OneToMany(mappedBy = "product")

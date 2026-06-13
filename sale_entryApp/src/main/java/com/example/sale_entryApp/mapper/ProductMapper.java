@@ -16,6 +16,7 @@ public interface ProductMapper {
     Product toEntity(ProductRequestDto productRequestDto);
     //Entity->DTO
     @BeanMapping(ignoreByDefault = true)
+    @Mapping(source="id",target="id")
     @Mapping(source="name",target="name")
     @Mapping(source="itemWeight",target="itemWeight")
     @Mapping(source="price",target="price")

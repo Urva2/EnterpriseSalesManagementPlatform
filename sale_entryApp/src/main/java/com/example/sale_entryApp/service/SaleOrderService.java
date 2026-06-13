@@ -9,6 +9,8 @@ import com.example.sale_entryApp.repository.OrderItemRepo;
 import com.example.sale_entryApp.repository.SaleOrderRepo;
 import com.example.sale_entryApp.repository.SalesPersonRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,15 @@ public class SaleOrderService {
     @Autowired
     private OrderItemRepo orderItemRepo;
 
+    public static AuthenticatedUser isAuthenticated(Authentication authentication){
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User is not authenticated.");
+        }
+        if (!(authentication.getPrincipal() instanceof AuthenticatedUser user)) {
+            throw new RuntimeException("Invalid user principal.");
+        }
+        return user;
+    }
     public SaleOrderDTO createSaleOrder(int salespersonId, int customerId) //crt-slorder
     {
         SalesPerson salesPerson = salesPersonRepo.findById(salespersonId);
@@ -56,90 +67,91 @@ public class SaleOrderService {
             throw new RuntimeException("Select Different Status.");
         }
     }
-
-    public List<SaleOrderDTO> viewSaleOrder() {
-        List<SaleOrder> saleOrders = saleOrderRepo.findAll();
-        if (!saleOrders.isEmpty()) {
-            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
-        }
-        throw new RuntimeException("Error!! SaleOrders Not Found.");
-    }
-
-    public SaleOrderDTO findOrderById(int saleorderId) {
-        SaleOrder saleOrder = saleOrderRepo.findById(saleorderId);
-        if (saleOrder != null) {
-            return saleOrderMapper.saleOrderDto(saleOrder);
-        }
-        throw new RuntimeException("Sale Order with ID:" + saleorderId + "Not Present.");
-    }
-
-    public List<SaleOrderDTO> findOrderByCustmerId(int customerId) {
-        List<SaleOrder> saleOrders = saleOrderRepo.findByCustomerId(customerId);
-        if (!saleOrders.isEmpty()) {
-            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
-        }
-        throw new RuntimeException("Sale Order not Found With Customer Id:" + customerId);
-    }
-
-    public List<SaleOrderDTO> findOrderByStatus(String status) {
-        List<SaleOrder> saleOrders = saleOrderRepo.findByStatus(status);
-        if (!saleOrders.isEmpty()) {
-            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
-        }
-        throw new RuntimeException("Sale Order not Found With Status:" + status);
-    }
+//    public List<SaleOrderDTO> viewSaleOrder() {
+//        List<SaleOrder> saleOrders = saleOrderRepo.findAll();
+//        if (!saleOrders.isEmpty()) {
+//            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
+//        }
+//        throw new RuntimeException("Error!! SaleOrders Not Found.");
+//    }
 
     public SaleOrderDTO deleteSaleOrderById(int id){
-        SaleOrder saleOrder=saleOrderRepo.findById(id);
-        if(saleOrder!=null){
-            SaleOrderDTO saleOrderDTO=saleOrderMapper.saleOrderDto(saleOrder);
-            saleOrderRepo.delete(saleOrder);
-            return saleOrderDTO;
+        SaleOrder saleOrder = saleOrderRepo.findById(id);
+        if (saleOrder == null) {
+            throw new RuntimeException("Order With ID:"+id+"Not Exist!");
         }
-        throw new RuntimeException("Order With ID:"+id+"Not Exist!");
-    }
-    public List<SaleOrderDTO> deleteAllSaleOrder(){
-        List<SaleOrder> saleOrders=saleOrderRepo.findAll();
-        if(!saleOrders.isEmpty()){
-            saleOrderRepo.deleteAll();
-            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
-        }
-        throw new RuntimeException("Error!Order Not Found.");
-    }
-    public List<SaleOrderDTO> deleteSaleOrderBySalesPersonId(int id){
-        List<SaleOrder> saleOrders=saleOrderRepo.findBySalesPersonId(id);
-        if(!saleOrders.isEmpty()){
-            saleOrderRepo.deleteAll(saleOrders);
-            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
-        }
-        throw new RuntimeException("SalesPerson With Id:"+id+" Has Not Any Orders.");
-    }
 
-    public List<SaleOrderDTO> deleteSaleOrderByCustomerId(int id){
-        List<SaleOrder> saleOrders=saleOrderRepo.findByCustomerId(id);
-        if(!saleOrders.isEmpty()){
-            saleOrderRepo.deleteAll(saleOrders);
-            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
+        if ("Cancelled".equalsIgnoreCase(saleOrder.getStatus())) {
+            throw new RuntimeException(
+                    "Order Has Already Been Deleted. ID: " + id);
         }
-        throw new RuntimeException("Customer With Id:"+id+" Has Not Any Orders.");
-    }
+            saleOrder.setStatus("Cancelled");
+         //   System.out.println("Order Status:"+saleOrder.getStatus());
+            saleOrderRepo.save(saleOrder);
+            return saleOrderMapper.saleOrderDto(saleOrder);
 
-    public List<SaleOrderDTO> deleteSaleOrderByStatus(String status){
-        List<SaleOrder> saleOrders=saleOrderRepo.findByStatus(status);
-        if(!saleOrders.isEmpty()){
-            saleOrderRepo.deleteAll(saleOrders);
-            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
-        }
-        throw new RuntimeException("Not Found Any Orders With Status:"+status);
     }
-    public List<SaleOrderDTO> deleteSaleOrderByDate(LocalDate date){
-        List<SaleOrder> saleOrders=saleOrderRepo.findByDate(date);
-        if(!saleOrders.isEmpty()){
-            saleOrderRepo.deleteAll(saleOrders);
-            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
+    public SaleOrderDTO deleteSaleOrderBySalesPerson(int id, int salesPersonId) {
+
+        SaleOrder saleOrder = saleOrderRepo.findByIdAndSalesPersonId(id, salesPersonId);
+
+        if (saleOrder == null) {
+            throw new RuntimeException(
+                    "SalesPerson Does Not Have Order With ID: " + id);
         }
-        throw new RuntimeException("Not Found Any Orders With Date:"+date);
+
+        if ("Cancelled".equalsIgnoreCase(saleOrder.getStatus())) {
+            throw new RuntimeException(
+                    "Order Has Already Been Deleted. ID: " + id);
+        }
+
+        saleOrder.setStatus("Cancelled");
+        saleOrderRepo.save(saleOrder);
+
+        return saleOrderMapper.saleOrderDto(saleOrder);
     }
+//    public List<SaleOrderDTO> deleteAllSaleOrder(){
+//        List<SaleOrder> saleOrders=saleOrderRepo.findAll();
+//        if(!saleOrders.isEmpty()){
+//            saleOrderRepo.deleteAll();
+//            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
+//        }
+//        throw new RuntimeException("Error!Order Not Found.");
+//    }
+//    public List<SaleOrderDTO> deleteSaleOrderBySalesPersonId(int id){
+//        List<SaleOrder> saleOrders=saleOrderRepo.findBySalesPersonId(id);
+//        if(!saleOrders.isEmpty()){
+//            saleOrderRepo.deleteAll(saleOrders);
+//            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
+//        }
+//        throw new RuntimeException("SalesPerson With Id:"+id+" Has Not Any Orders.");
+//    }
+
+//    public List<SaleOrderDTO> deleteSaleOrderByCustomerId(int id){
+//        List<SaleOrder> saleOrders=saleOrderRepo.findByCustomerId(id);
+//        if(!saleOrders.isEmpty()){
+//            saleOrderRepo.deleteAll(saleOrders);
+//            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
+//        }
+//        throw new RuntimeException("Customer With Id:"+id+" Has Not Any Orders.");
+//    }
+
+//    public List<SaleOrderDTO> deleteSaleOrderByStatus(String status){
+//        List<SaleOrder> saleOrders=saleOrderRepo.findByStatus(status);
+//        if(!saleOrders.isEmpty()){
+//            saleOrderRepo.deleteAll(saleOrders);
+//            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
+//        }
+//        throw new RuntimeException("Not Found Any Orders With Status:"+status);
+//    }
+//    public List<SaleOrderDTO> deleteSaleOrderByDate(LocalDate date){
+//        List<SaleOrder> saleOrders=saleOrderRepo.findByDate(date);
+//        if(!saleOrders.isEmpty()){
+//            saleOrderRepo.deleteAll(saleOrders);
+//            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
+//        }
+//        throw new RuntimeException("Not Found Any Orders With Date:"+date);
+//    }
     public double cal_revenue(int s_personId){
         List<SaleOrder> saleOrders=saleOrderRepo.findBySalesPersonId(s_personId);
         double totalrev=0.0;
@@ -153,16 +165,11 @@ public class SaleOrderService {
         return totalrev;
     }
 
+    //Note by Urva:Needed Pagination here.
     public List<SaleOrderDTO> getMyOrders() {
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("User is not authenticated.");
-        }
-        if (!(authentication.getPrincipal() instanceof AuthenticatedUser user)) {
-            throw new RuntimeException("Invalid user principal.");
-        }
+        AuthenticatedUser user =isAuthenticated(authentication);
 
         int id = Math.toIntExact(user.getId());
 
@@ -175,6 +182,42 @@ public class SaleOrderService {
         return orders.stream()
                 .map(saleOrderMapper::saleOrderDto)
                 .toList();
+    }
+    public Page<SaleOrderDTO> getAllSaleOrders(Pageable pageable) {
+        return saleOrderRepo.findAll(pageable).map(saleOrderMapper::saleOrderDto);
+    }
+    public Page<SaleOrderDTO> searchSaleOrdersByCustomerName(String customerName, Pageable pageable) {
+        Page<SaleOrder> ordersPage = saleOrderRepo.findByCustomerNameContainingIgnoreCase(customerName, pageable);
+        return ordersPage.map(saleOrderMapper::saleOrderDto);
+    }
+
+    public Page<SaleOrderDTO> getMyOrdersByname(Pageable pageable, String customerName) {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+        AuthenticatedUser user =isAuthenticated(authentication);
+        int id=Math.toIntExact(user.getId());
+        Page<SaleOrder> saleOrders=saleOrderRepo.findByCustomerNameContainingIgnoreCaseAndSalesPersonId(customerName,id,pageable);
+        return saleOrders.map(saleOrderMapper::saleOrderDto);
+    }
+
+    public Page<SaleOrderDTO> searchSaleOrdersByStatus(String status, Pageable pageable) {
+        Page<SaleOrder> saleOrders;
+        if (status != null && !status.trim().isEmpty()) {
+             saleOrders= saleOrderRepo.findByStatusIgnoreCase(status, pageable);
+        } else {
+            // If no name is provided, just return all products paginated
+            saleOrders = saleOrderRepo.findAll(pageable);
+        }
+        return saleOrders.map(saleOrderMapper::saleOrderDto);
+    }
+
+    public Page<SaleOrderDTO> getMyOrdersByStatus(Pageable pageable, String status) {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+        AuthenticatedUser user =isAuthenticated(authentication);
+        int id=Math.toIntExact(user.getId());
+        Page<SaleOrder> saleOrders=saleOrderRepo.findByStatusContainingIgnoreCaseAndSalesPersonId(status,id,pageable);
+        return saleOrders.map(saleOrderMapper::saleOrderDto);
     }
 }
 

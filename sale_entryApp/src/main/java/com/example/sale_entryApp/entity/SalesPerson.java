@@ -12,7 +12,10 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name="salesperson")
+@Table(name="salesperson",
+        indexes = {
+                @Index(name = "idx_name", columnList = "name")
+        })
 public class SalesPerson {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

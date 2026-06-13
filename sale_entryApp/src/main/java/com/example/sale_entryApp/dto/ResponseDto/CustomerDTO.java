@@ -9,6 +9,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 public class CustomerDTO {
+    private int id;
     private String name;
     @Lob
     private String address;

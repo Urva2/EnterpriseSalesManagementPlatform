@@ -30,28 +30,47 @@ public class BasicSecurity {
     @Autowired
     private JWTAuthFilter jwtAuthFilter;
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http){
-http.authorizeHttpRequests(configurer->
-                configurer
-                        .requestMatchers(HttpMethod.POST,"/products/register").hasRole("ADMIN") //ROLE_ADMIN,SPring will covert
-                        .requestMatchers("/orders/**").hasRole("SALES_PERSON")
-                        .requestMatchers(HttpMethod.POST,"/salesperson/register").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/customers/register").hasRole("SALES_PERSON")
-                        .requestMatchers(HttpMethod.POST,"/admin/register").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.PUT,"/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET,"/salesperson/me").hasRole("SALES_PERSON")
-                        .requestMatchers(HttpMethod.PATCH,"/salesperson/me").hasRole("SALES_PERSON")
-                        .requestMatchers(HttpMethod.GET, "/products").hasAnyRole("SALES_PERSON", "ADMIN")
-                        .requestMatchers(HttpMethod.GET,"/products/search").hasAnyRole("SALES_PERSON", "ADMIN")
-                        //.anyRequest().authenticated()
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(configurer -> configurer
+                // 1. Public Endpoints (Registration & Login)
+                .requestMatchers(HttpMethod.POST, "/salesperson/register", "/admin/register", "/auth/login").permitAll()
+
+                // 2. Product Endpoints
+                .requestMatchers(HttpMethod.GET, "/products", "/products/search").hasAnyRole("SALES_PERSON", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/products/register").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
+
+                // 3. SalesPerson & Customer Endpoints
+                .requestMatchers(HttpMethod.POST, "/customers/register").hasRole("SALES_PERSON")
+                .requestMatchers(HttpMethod.GET, "/salesperson/me").hasRole("SALES_PERSON")
+                .requestMatchers(HttpMethod.PATCH, "/salesperson/me").hasRole("SALES_PERSON")
+                .requestMatchers(HttpMethod.GET, "/salesperson", "/salesperson/search").hasRole("ADMIN")
+
+                // 4. Sale Order Endpoints (Admin specific management)
+                .requestMatchers(HttpMethod.GET, "/orders/viewOrders", "/orders/search", "/orders/search-status").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/admin/dashboard/stats").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/orders/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/orders/totalrev/**").hasAnyRole("SALES_PERSON", "ADMIN")
+
+                // 5. Sale Order Endpoints (Salesperson cart operations & personal views)
+                // Because Spring reads top-to-bottom, Admins get caught by the specific rules above.
+                // Everything else falling to /orders/** (like addToCart, incrsQty, my-orders) requires SALES_PERSON.
+                .requestMatchers("/orders/**").hasRole("SALES_PERSON")
+
+                // 6. Secure everything else by default! (Crucial for security)
+                .anyRequest().authenticated()
         );
+
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http.cors(Customizer.withDefaults());
         http.httpBasic(Customizer.withDefaults());
-        http.csrf(csrf->csrf.disable());
-        http.sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.csrf(csrf -> csrf.disable());
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
         return http.build();
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

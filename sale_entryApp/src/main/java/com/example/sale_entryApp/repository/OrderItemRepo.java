@@ -1,7 +1,10 @@
 package com.example.sale_entryApp.repository;
 
 import com.example.sale_entryApp.entity.OrderItem;
+import com.example.sale_entryApp.entity.SaleOrder;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrderItemRepo extends JpaRepository<OrderItem,Integer> {

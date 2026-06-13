@@ -9,8 +9,10 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class SaleOrderDTO {
+    private int id;
     private LocalDate date;
     private double total;
     private String status;
+    private String customerName;
     private List<OrderItemDTO> orderItemList;
 }

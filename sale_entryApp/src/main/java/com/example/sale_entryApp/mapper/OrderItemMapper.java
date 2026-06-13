@@ -9,6 +9,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface OrderItemMapper {
     @BeanMapping(ignoreByDefault = true)
+    @Mapping(source="id",target="id")
     @Mapping(source="name",target="name")
     @Mapping(source="quantity",target="quantity")
     @Mapping(source="price",target="price")

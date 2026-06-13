@@ -16,7 +16,11 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name="saleorder")
+@Table(name="saleorder",
+indexes = {
+        @Index(name="idx_customer",columnList = "c_id"),
+        @Index(name="idx_customer",columnList = "status")
+})
 public class SaleOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
