@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public interface SaleOrderRepo extends JpaRepository<SaleOrder,Integer> {
     SaleOrder findById(int id);  //Just Writing it,but Spring Provide this
@@ -27,12 +28,15 @@ public interface SaleOrderRepo extends JpaRepository<SaleOrder,Integer> {
     );
     Page<SaleOrder> findByStatusIgnoreCase(String status, Pageable pageable);
     Page<SaleOrder> findByStatusContainingIgnoreCaseAndSalesPersonId(
-            String customerName,
-            int salesPId,
+            String status,
+            int salesPersonId,
             Pageable pageable
     );
+    List<SaleOrder> findByStatusAndDateBefore(String status, LocalDate date);
+
     @Query("SELECT SUM(s.total) FROM SaleOrder s WHERE s.salesPerson.id = :salesPersonId")
     Double calculateTotalRevenueBySalesPersonId(@Param("salesPersonId") int salesPersonId);
+
 
     @Query("SELECT SUM(s.total) FROM SaleOrder s")
     Double calculateTotalRevenue();

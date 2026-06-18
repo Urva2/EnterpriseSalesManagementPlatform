@@ -2,6 +2,7 @@ package com.example.sale_entryApp.controller;
 
 import com.example.sale_entryApp.dto.ResponseDto.AuthenticatedUser;
 import com.example.sale_entryApp.dto.ResponseDto.SaleOrderDTO;
+import com.example.sale_entryApp.dto.RequestDto.CheckoutRequestDTO;
 import com.example.sale_entryApp.entity.OrderItem;
 import com.example.sale_entryApp.entity.SaleOrder;
 import com.example.sale_entryApp.repository.SaleOrderRepo;
@@ -55,6 +56,27 @@ public class SaleOrderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    @PutMapping("/{orderId}/save-draft")
+    public ResponseEntity<?> saveDraft(@PathVariable int orderId, @RequestBody CheckoutRequestDTO requestDTO) {
+        try {
+            SaleOrderDTO saleOrderDTO = saleOrderService.saveDraft(orderId, requestDTO.getItems());
+            return ResponseEntity.status(HttpStatus.OK).body(saleOrderDTO);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{orderId}/checkout")
+    public ResponseEntity<?> checkout(@PathVariable int orderId, @RequestBody CheckoutRequestDTO requestDTO) {
+        try {
+            SaleOrderDTO saleOrderDTO = saleOrderService.confirmAndCheckout(orderId, requestDTO.getItems());
+            return ResponseEntity.status(HttpStatus.OK).body(saleOrderDTO);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
     //For Increasing Quntity Of Items Of OrderItem
     @PutMapping("/incrsQty/{orderItmeId}")
     public ResponseEntity<?> increaseQuntity(@PathVariable int orderItmeId){

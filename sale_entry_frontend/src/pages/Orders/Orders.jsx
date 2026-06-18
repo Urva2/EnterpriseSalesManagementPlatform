@@ -10,17 +10,20 @@ export default function Orders() {
   const [activeTab, setActiveTab] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchOrders = async (query = '') => {
     try {
-      const url = query ? `/orders/search?customerName=${query}` : '/orders/viewOrders';
+      const url = query ? `/orders/search?customerName=${query}&size=100&sort=id,desc` : '/orders/viewOrders?size=100&sort=id,desc';
       const response = await api.get(url);
       // Format backend orders
       const formattedOrders = (response.data.content || []).map(order => ({
         id: `ORD-${order.id}`,
         dbId: order.id,
         date: order.date, // might need formatting
-        customer: order.customer?.name || 'Unknown',
+        customer: order.customerName || 'Unknown',
         items: order.orderItemList ? order.orderItemList.reduce((sum, item) => sum + item.quantity, 0) : 0,
         status: order.status ? order.status.toUpperCase() : 'PENDING',
         total: order.total || 0,
@@ -73,6 +76,11 @@ export default function Orders() {
     return activeTab === 'All' || order.status.toLowerCase() === activeTab.toLowerCase();
   });
 
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+
   return (
     <div className="orders-container">
       {/* 1. Page Header */}
@@ -92,7 +100,10 @@ export default function Orders() {
             placeholder="Search by customer name..." 
             className="search-input" 
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={e => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </div>
         <div className="filter-tabs">
@@ -100,7 +111,10 @@ export default function Orders() {
             <button 
               key={tab} 
               className={`pill-tab ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                setCurrentPage(1);
+              }}
             >
               {tab}
             </button>
@@ -122,7 +136,7 @@ export default function Orders() {
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.map(order => (
+            {paginatedOrders.map(order => (
               <tr key={order.id}>
                 <td className="text-dark font-medium">{order.date}</td>
                 <td className="text-dark font-medium">{order.customer}</td>
@@ -149,7 +163,7 @@ export default function Orders() {
 
       {/* 4. Mobile Cards */}
       <div className="mobile-cards-list hidden-desktop">
-        {filteredOrders.map(order => (
+        {paginatedOrders.map(order => (
           <div className="mobile-order-card" key={order.id} onClick={() => setSelectedOrder(order)}>
             <div className="order-card-header">
               <span className="order-customer">{order.customer}</span>
@@ -170,14 +184,38 @@ export default function Orders() {
       </div>
 
       {/* 5. Pagination Bar */}
-      <div className="pagination-bar">
-        <span className="pagination-info">Showing {filteredOrders.length} orders</span>
-        <div className="pagination-controls">
-          <button className="page-btn disabled">Previous</button>
-          <button className="page-btn active">1</button>
-          <button className="page-btn disabled">Next</button>
+      {filteredOrders.length > 0 && (
+        <div className="pagination-bar">
+          <span className="pagination-info">Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders</span>
+          <div className="pagination-controls">
+            <button 
+              className={`page-btn ${currentPage === 1 ? 'disabled' : ''}`}
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button 
+                key={page} 
+                className={`page-btn ${currentPage === page ? 'active' : ''}`}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button 
+              className={`page-btn ${currentPage === totalPages ? 'disabled' : ''}`}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 6. Slide-in Detail Panel */}
       {selectedOrder && (

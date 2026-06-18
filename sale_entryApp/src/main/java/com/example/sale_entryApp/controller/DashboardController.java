@@ -1,6 +1,6 @@
 package com.example.sale_entryApp.controller;
 
-import com.example.sale_entryApp.dto.DashboardStatsDTO;
+import com.example.sale_entryApp.dto.ResponseDto.DashboardStatsDTO;
 import com.example.sale_entryApp.repository.ProductRepo;
 import com.example.sale_entryApp.repository.SaleOrderRepo;
 import com.example.sale_entryApp.repository.SalesPersonRepo;

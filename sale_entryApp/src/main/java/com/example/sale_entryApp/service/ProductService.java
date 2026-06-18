@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class ProductService {
@@ -101,4 +102,14 @@ public class ProductService {
        }
       throw new RuntimeException("Product Not Exist With ID:"+id);
     }
-}
+
+    public void incrementStock(Integer productId,Integer quantity){
+        if(quantity<=0) {
+            return ;
+        }
+        Product product=productRepo.findById(productId).orElseThrow(()->new RuntimeException("Product not found"));
+        product.setStockQuantity(product.getStockQuantity()+quantity);
+        productRepo.save(product);
+        }
+    }
+

@@ -9,6 +9,11 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    // Don't send token for login or register requests
+    if (config.url.includes('/auth/login') || config.url.includes('/register')) {
+      return config;
+    }
+    
     const token = localStorage.getItem('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;

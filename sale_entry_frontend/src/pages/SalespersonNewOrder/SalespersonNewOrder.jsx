@@ -11,7 +11,10 @@ export default function SalespersonNewOrder() {
   
   // Step 1 states
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
-  const [showStep1Cancel, setShowStep1Cancel] = useState(false);
+  
+  // Universal exit modal state
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [orderId, setOrderId] = useState(null);
   
   // Step 2 states
   const [productSearchQuery, setProductSearchQuery] = useState('');
@@ -105,24 +108,59 @@ export default function SalespersonNewOrder() {
   const totalCartValue = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   const totalCartItems = cartItems.reduce((total, item) => total + item.quantity, 0);
 
+  const getOrCreateOrderId = async () => {
+    if (orderId) return orderId;
+    if (!selectedCustomerId) throw new Error("No customer selected");
+    const cartRes = await api.post(`/orders/createCart/${selectedCustomerId}`);
+    const newOrderId = cartRes.data.id;
+    setOrderId(newOrderId);
+    return newOrderId;
+  };
+
   const confirmOrder = async () => {
     if(!selectedCustomerId || cartItems.length === 0) return;
     setIsSubmitting(true);
     try {
-      // 1. Create Empty Cart / Order
-      const cartRes = await api.post(`/orders/createCart/${selectedCustomerId}`);
-      const orderId = cartRes.data.id;
-
-      // 2. Add each product in cart
-      for(let item of cartItems) {
-        await api.post(`/orders/${item.id}/addToCart/${orderId}?quantity=${item.quantity}`);
-      }
+      const id = await getOrCreateOrderId();
       
+      const payload = {
+        items: cartItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity
+        }))
+      };
+
+      await api.post(`/orders/${id}/checkout`, payload);
       setIsOrderConfirmed(true);
     } catch (err) {
       console.error('Failed to confirm order:', err);
-      alert('Failed to place order. Please try again.');
+      alert(err.response?.data || 'Failed to place order. Please try again.');
     } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const saveDraft = async () => {
+    if(!selectedCustomerId) {
+      alert("Please select a customer first to save a draft.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const id = await getOrCreateOrderId();
+      
+      const payload = {
+        items: cartItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity
+        }))
+      };
+
+      await api.put(`/orders/${id}/save-draft`, payload);
+      navigate('/salesperson/orders');
+    } catch (err) {
+      console.error('Failed to save draft:', err);
+      alert('Failed to save draft. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -130,6 +168,7 @@ export default function SalespersonNewOrder() {
   const resetOrder = () => {
     setCurrentStep(1);
     setSelectedCustomerId(null);
+    setOrderId(null);
     setCartItems([]);
     setOrderRemarks('');
     setIsOrderConfirmed(false);
@@ -233,7 +272,7 @@ export default function SalespersonNewOrder() {
       </div>
 
       <div className="bottom-action-bar">
-        <button className="btn-ghost cancel-btn" onClick={() => setShowStep1Cancel(true)}>Cancel</button>
+        <button className="btn-ghost cancel-btn" onClick={() => setShowExitModal(true)}>Cancel</button>
         <button 
           className={`btn-primary next-btn ${!selectedCustomerId ? 'disabled' : ''}`}
           disabled={!selectedCustomerId}
@@ -339,6 +378,13 @@ export default function SalespersonNewOrder() {
                 <span>Total:</span>
                 <strong>₹{totalCartValue.toFixed(2)}</strong>
               </div>
+              <button 
+                className="btn-ghost cancel-btn" 
+                onClick={() => setShowExitModal(true)}
+                style={{ width: '100%', marginBottom: '10px' }}
+              >
+                Cancel Order
+              </button>
               <button 
                 className={`btn-primary full-width ${cartItems.length === 0 ? 'disabled' : ''}`}
                 disabled={cartItems.length === 0}
@@ -497,7 +543,10 @@ export default function SalespersonNewOrder() {
       </div>
 
       <div className="bottom-action-bar">
-        <button className="btn-ghost cancel-btn" onClick={handlePrevStep}>
+        <button className="btn-ghost cancel-btn" onClick={() => setShowExitModal(true)}>
+          <X size={16} style={{marginRight: '0.5rem'}}/> Cancel Order
+        </button>
+        <button className="btn-ghost-blue cancel-btn" onClick={handlePrevStep}>
           <ArrowLeft size={16} style={{marginRight: '0.5rem'}}/> Back
         </button>
         <button 
@@ -505,7 +554,7 @@ export default function SalespersonNewOrder() {
           disabled={cartItems.length === 0 || isSubmitting}
           onClick={confirmOrder}
         >
-          {isSubmitting ? 'Placing Order...' : <>Confirm Order <Check size={18} /></>}
+          {isSubmitting ? 'Processing...' : <>Confirm Order <Check size={18} /></>}
         </button>
       </div>
     </div>
@@ -551,18 +600,27 @@ export default function SalespersonNewOrder() {
       {currentStep === 3 && renderStep3()}
       {renderSuccessOverlay()}
 
-      {/* CUSTOM CANCEL MODAL FOR STEP 1 */}
-      {showStep1Cancel && (
+      {/* CUSTOM CANCEL MODAL FOR ALL STEPS */}
+      {showExitModal && (
         <div className="custom-modal-overlay">
           <div className="custom-modal-card">
             <div className="modal-icon-danger">
               <X size={24} />
             </div>
-            <h3>Cancel Order?</h3>
-            <p>Are you sure you want to cancel and return to the dashboard?</p>
-            <div className="custom-modal-actions">
-              <button className="custom-modal-btn-cancel" onClick={() => setShowStep1Cancel(false)}>No, Go Back</button>
-              <button className="custom-modal-btn-danger" onClick={() => window.location.href = '/salesperson/dashboard'}>Yes, Cancel</button>
+            <h3>Unsaved Order</h3>
+            <p>You are about to leave the order creation screen. Do you want to save your progress as a draft so you can continue later?</p>
+            <div className="custom-modal-actions" style={{ flexDirection: 'column', gap: '10px' }}>
+              <button 
+                className="btn-primary" 
+                onClick={saveDraft}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Saving...' : 'Yes, Save as Draft'}
+              </button>
+              <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+                <button className="custom-modal-btn-cancel" onClick={() => setShowExitModal(false)} style={{ flex: 1 }}>Stay Here</button>
+                <button className="custom-modal-btn-danger" onClick={() => navigate('/salesperson/dashboard')} style={{ flex: 1 }}>Leave without saving</button>
+              </div>
             </div>
           </div>
         </div>
