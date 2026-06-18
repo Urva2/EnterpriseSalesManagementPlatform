@@ -19,7 +19,10 @@ import java.util.List;
 @Table(name="saleorder",
 indexes = {
         @Index(name="idx_customer",columnList = "c_id"),
-        @Index(name="idx_customer",columnList = "status")
+        @Index(name="idx_customer",columnList = "status"),
+        @Index(name = "idx_saleorder_date", columnList = "date"),
+        @Index(name = "idx_saleorder_salesperson", columnList = "sales_p_id"),
+        @Index(name = "idx_saleorder_customer", columnList = "c_id")
 })
 public class SaleOrder {
     @Id

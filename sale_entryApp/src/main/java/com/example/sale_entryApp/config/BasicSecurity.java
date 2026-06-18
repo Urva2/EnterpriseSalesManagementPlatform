@@ -35,6 +35,7 @@ public class BasicSecurity {
                 // 1. Public Endpoints (Registration & Login)
                 .requestMatchers(HttpMethod.POST, "/salesperson/register", "/admin/register", "/auth/login").permitAll()
 
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 // 2. Product Endpoints
                 .requestMatchers(HttpMethod.GET, "/products", "/products/search").hasAnyRole("SALES_PERSON", "ADMIN")
                 .requestMatchers(HttpMethod.POST, "/products/register").hasRole("ADMIN")

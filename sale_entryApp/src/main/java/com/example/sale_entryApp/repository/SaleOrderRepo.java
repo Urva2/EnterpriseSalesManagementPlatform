@@ -36,4 +36,56 @@ public interface SaleOrderRepo extends JpaRepository<SaleOrder,Integer> {
 
     @Query("SELECT SUM(s.total) FROM SaleOrder s")
     Double calculateTotalRevenue();
+
+    @Query("""
+    SELECT s.name
+    FROM SaleOrder o
+    JOIN o.salesPerson s
+    GROUP BY s.id, s.name
+    ORDER BY SUM(o.total) DESC
+    """)
+    List<String> findTopSalesPerson();
+
+    // Prevents null by returning 0 if SUM has no result
+    @Query("""
+    SELECT COALESCE(SUM(s.total),0)  
+    FROM SaleOrder s
+    WHERE s.date BETWEEN :from AND :to
+    """)
+    Double getRevenueBetweenDates(
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
+    );
+
+    @Query("""
+    SELECT COUNT(s)
+    FROM SaleOrder s
+    WHERE s.date BETWEEN :from AND :to
+    """)
+    Long getOrderCountBetweenDates(
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
+    );
+
+    @Query("""
+    SELECT COALESCE(AVG(s.total),0)
+    FROM SaleOrder s
+    WHERE s.date BETWEEN :from AND :to
+    """)
+    Double getAverageOrderValueBetweenDates(
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
+    );
+
+    @Query("""
+    SELECT
+    s.name,
+    COUNT(o),
+    COALESCE(SUM(o.total),0)
+    FROM SaleOrder o
+    JOIN o.salesPerson s
+    GROUP BY s.id, s.name
+    ORDER BY SUM(o.total) DESC, COUNT(o) DESC
+    """)
+    List<Object[]> getSalesPersonRanking();
 }

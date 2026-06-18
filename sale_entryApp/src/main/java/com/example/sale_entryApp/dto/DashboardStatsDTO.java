@@ -8,4 +8,6 @@ public class DashboardStatsDTO {
     private long totalOrders;
     private long totalSalespersons;
     private double totalRevenue;
+    private Long totalCustomers;
+    private String topSalesPerson;
 }
