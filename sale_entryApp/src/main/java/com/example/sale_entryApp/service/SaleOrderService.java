@@ -1,6 +1,7 @@
 package com.example.sale_entryApp.service;
 
 import com.example.sale_entryApp.dto.ResponseDto.AuthenticatedUser;
+import com.example.sale_entryApp.dto.ResponseDto.ProductDTO;
 import com.example.sale_entryApp.dto.ResponseDto.SaleOrderDTO;
 import com.example.sale_entryApp.entity.*;
 import com.example.sale_entryApp.mapper.SaleOrderMapper;
@@ -218,6 +219,14 @@ public class SaleOrderService {
         int id=Math.toIntExact(user.getId());
         Page<SaleOrder> saleOrders=saleOrderRepo.findByStatusContainingIgnoreCaseAndSalesPersonId(status,id,pageable);
         return saleOrders.map(saleOrderMapper::saleOrderDto);
+    }
+
+    public SaleOrderDTO getOrderById(int id){
+        SaleOrder order = saleOrderRepo.findById(id);
+        if (order == null) {
+            throw new RuntimeException("Order not found with ID: " + id);
+        }
+        return saleOrderMapper.saleOrderDto(order);
     }
 }
 

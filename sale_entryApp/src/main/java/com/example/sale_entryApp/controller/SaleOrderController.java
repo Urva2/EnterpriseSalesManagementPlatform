@@ -202,6 +202,11 @@ public class SaleOrderController {
         Page<SaleOrderDTO> orders = saleOrderService.searchSaleOrdersByStatus(status, pageable);
         return ResponseEntity.ok(orders);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SaleOrderDTO> getOrderById(@PathVariable int id) {
+        return ResponseEntity.ok(saleOrderService.getOrderById(id));
+    }
 }
 
 //http://localhost:8080/orders

@@ -41,4 +41,10 @@ public class CustomerService {
        }
        throw new RuntimeException("Error!! Customers Not Found.");
     }
+
+    public List<CustomerDTO> searchCustomerByPhoneno(String phone){
+        List<Customer> customers = customerRepo.findByPhonenoContaining(phone);
+        return customerMapper.toDtoCustomersList(customers);
+
+    }
 }

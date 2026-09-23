@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -100,5 +101,10 @@ public class ProductService {
            return productMapper.productDto(product);
        }
       throw new RuntimeException("Product Not Exist With ID:"+id);
+    }
+
+    public List<ProductDTO> getLowStockProducts(int threshold){
+        List<Product> products = productRepo.findByStockQuantityLessThanEqualAndIsActiveTrue(threshold);
+        return products.stream().map(productMapper::productDto).toList();
     }
 }

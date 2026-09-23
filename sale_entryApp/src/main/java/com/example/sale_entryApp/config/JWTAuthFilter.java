@@ -1,6 +1,8 @@
 package com.example.sale_entryApp.config;
 
 import com.example.sale_entryApp.dto.ResponseDto.AuthenticatedUser;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +34,11 @@ public class JWTAuthFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
+        if (path.startsWith("/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
        try {
            log.info("Incoming Request:" + request.getRequestURI());
 
@@ -55,8 +62,19 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                SecurityContextHolder.getContext().setAuthentication(uptoken);
            }
            filterChain.doFilter(request, response);
-       }catch (Exception ex){
-            handlerExceptionResolver.resolveException(request,response,null,ex);
+       }catch (ExpiredJwtException ex) {
+           log.warn("JWT expired: {}", ex.getMessage());
+           response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+           response.setContentType("application/json");
+           response.getWriter().write("{\"error\":\"TOKEN_EXPIRED\",\"message\":\"Access token expired\"}");
+       } catch (JwtException ex) {
+           log.warn("JWT invalid: {}", ex.getMessage());
+           response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+           response.setContentType("application/json");
+           response.getWriter().write("{\"error\":\"TOKEN_INVALID\",\"message\":\"Invalid access token\"}");
+       } catch (Exception ex) {
+           log.error("Unexpected auth filter error", ex);
+           response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
        }
     }
 }

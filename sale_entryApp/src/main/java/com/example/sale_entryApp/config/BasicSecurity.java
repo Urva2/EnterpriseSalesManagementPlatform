@@ -33,7 +33,7 @@ public class BasicSecurity {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(configurer -> configurer
                 // 1. Public Endpoints (Registration & Login)
-                .requestMatchers(HttpMethod.POST, "/salesperson/register", "/admin/register", "/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/salesperson/register", "/admin/register", "/auth/login", "/auth/refresh", "/auth/logout").permitAll()
 
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // 2. Product Endpoints
@@ -65,7 +65,7 @@ public class BasicSecurity {
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         http.cors(Customizer.withDefaults());
-        http.httpBasic(Customizer.withDefaults());
+        http.httpBasic(httpBasic -> httpBasic.disable());
         http.csrf(csrf -> csrf.disable());
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

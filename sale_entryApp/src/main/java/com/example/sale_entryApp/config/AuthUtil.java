@@ -22,15 +22,31 @@ public class AuthUtil {
         return Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String getAccessToken(AuthenticatedUser authenticatedUser){
+//    public String getAccessToken(AuthenticatedUser authenticatedUser){
+//        return Jwts.builder()
+//                .subject(authenticatedUser.getUsername())//payload
+//                .claim("UserID:",authenticatedUser.getId())
+//                .claim("ROLE:",authenticatedUser.getAuthorities())//payload
+//                .issuedAt(new Date())//payload
+//                .expiration(new Date(System.currentTimeMillis()+1000*60*60))//payload
+//                .signWith(getSecretKey()) //header part
+//                .compact();//Combine the payload and header part and sign them with the secret key automatically
+//    }
+
+    // CHANGED: shorter expiry for access token
+    private static final long ACCESS_TOKEN_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
+
+    public String generateAccessToken(AuthenticatedUser user) {
+        SecretKey key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes());
+
         return Jwts.builder()
-                .subject(authenticatedUser.getUsername())//payload
-                .claim("UserID:",authenticatedUser.getId())
-                .claim("ROLE:",authenticatedUser.getAuthorities())//payload
-                .issuedAt(new Date())//payload
-                .expiration(new Date(System.currentTimeMillis()+1000*60*60))//payload
-                .signWith(getSecretKey()) //header part
-                .compact();//Combine the payload and header part and sign them with the secret key automatically
+                .subject(user.getUsername())
+                .claim("userId", user.getId())
+                .claim("role", user.getUserType().name())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRY_MS))
+                .signWith(key)
+                .compact();
     }
     public String getUserNameFromToken(String token){
         // Start building a JWT parser

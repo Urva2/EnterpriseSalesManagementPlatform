@@ -2,9 +2,11 @@ package com.example.sale_entryApp.controller;
 
 import com.example.sale_entryApp.dto.RequestDto.AdminRequestDto;
 import com.example.sale_entryApp.dto.ResponseDto.AdminDTO;
+import com.example.sale_entryApp.dto.ResponseDto.ProductDTO;
 import com.example.sale_entryApp.dto.ResponseDto.SaleOrderDTO;
 import com.example.sale_entryApp.entity.Admin;
 import com.example.sale_entryApp.service.AdminService;
+import com.example.sale_entryApp.service.ProductService;
 import com.example.sale_entryApp.service.ReportService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,8 @@ public class AdminController {
 
     @Autowired
     private ReportService reportService;
+    @Autowired
+    private ProductService productService;
 
     @PostMapping("/register")
     public ResponseEntity<?> addAdmin(@Valid @RequestBody AdminRequestDto admin){
@@ -39,5 +43,10 @@ public class AdminController {
     public ResponseEntity<List<SaleOrderDTO>> getCustomerPurchaseHistory(@PathVariable int id)
     {
         return ResponseEntity.ok(reportService.getCustomerPurchaseHistory(id));
+    }
+
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<ProductDTO>>getLowStockProducts(@RequestParam(defaultValue = "10") int threshold) {
+        return ResponseEntity.ok(productService.getLowStockProducts(threshold));
     }
 }
