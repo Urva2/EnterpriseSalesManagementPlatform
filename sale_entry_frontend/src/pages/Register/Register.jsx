@@ -36,8 +36,8 @@ export default function Register() {
 
     try {
       const endpoint = role === 'Admin' 
-        ? 'http://localhost:8080/admin/register' 
-        : 'http://localhost:8080/salesperson/register';
+        ? `http://${window.location.hostname}:8080/admin/register` 
+        : `http://${window.location.hostname}:8080/salesperson/register`;
       
       const bodyPayload = role === 'Admin' 
         ? { name, email, password } 

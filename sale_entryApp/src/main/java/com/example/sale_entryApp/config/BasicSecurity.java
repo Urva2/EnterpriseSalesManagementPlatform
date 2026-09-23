@@ -40,6 +40,7 @@ public class BasicSecurity {
                 .requestMatchers(HttpMethod.POST, "/products/register").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
 
                 // 3. SalesPerson & Customer Endpoints
                 .requestMatchers(HttpMethod.POST, "/customers/register").hasRole("SALES_PERSON")

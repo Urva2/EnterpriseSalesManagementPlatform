@@ -40,4 +40,16 @@ public interface SaleOrderRepo extends JpaRepository<SaleOrder,Integer> {
 
     @Query("SELECT SUM(s.total) FROM SaleOrder s")
     Double calculateTotalRevenue();
+
+    @Query("SELECT SUM(s.total) FROM SaleOrder s WHERE s.date BETWEEN :from AND :to")
+    Double getRevenueBetweenDates(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    @Query("SELECT COUNT(s) FROM SaleOrder s WHERE s.date BETWEEN :from AND :to")
+    Long getOrderCountBetweenDates(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    @Query("SELECT AVG(s.total) FROM SaleOrder s WHERE s.date BETWEEN :from AND :to")
+    Double getAverageOrderValueBetweenDates(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    @Query("SELECT s.salesPerson.name, COUNT(s.id), SUM(s.total) FROM SaleOrder s GROUP BY s.salesPerson.name ORDER BY SUM(s.total) DESC")
+    List<Object[]> getSalesPersonRanking();
 }

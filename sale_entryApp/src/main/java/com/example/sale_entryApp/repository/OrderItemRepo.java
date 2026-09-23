@@ -12,6 +12,14 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface OrderItemRepo extends JpaRepository<OrderItem,Integer> {
+
+        @Query("""
+    SELECT oi.product.name, SUM(oi.quantity)
+    FROM OrderItem oi
+    GROUP BY oi.product.id, oi.product.name
+    ORDER BY SUM(oi.quantity) DESC
+    """)
+        List<Object[]> getTopSellingProducts(Pageable pageable);
         OrderItem findById(int id); //Just Writing it,but Spring Provide this
         @Query("""
     SELECT oi.product.id, oi.quantity
