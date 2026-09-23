@@ -14,24 +14,35 @@ import java.util.Objects;
 
 public interface SaleOrderRepo extends JpaRepository<SaleOrder,Integer> {
     SaleOrder findById(int id);  //Just Writing it,but Spring Provide this
-    SaleOrder findByIdAndSalesPersonId(int id,int salesPersonId);
+
+    SaleOrder findByIdAndSalesPersonId(int id, int salesPersonId);
+
     List<SaleOrder> findAllById(int id);
+
     List<SaleOrder> findByCustomerId(int c_id);
+
     List<SaleOrder> findByStatus(String status);
+
     List<SaleOrder> findBySalesPersonId(int s_personId);
+
     List<SaleOrder> findByDate(LocalDate date);
+
     Page<SaleOrder> findByCustomerNameContainingIgnoreCase(String customerName, Pageable pageable);
+
     Page<SaleOrder> findByCustomerNameContainingIgnoreCaseAndSalesPersonId(
             String customerName,
             int salesPId,
             Pageable pageable
     );
+
     Page<SaleOrder> findByStatusIgnoreCase(String status, Pageable pageable);
+
     Page<SaleOrder> findByStatusContainingIgnoreCaseAndSalesPersonId(
             String status,
             int salesPersonId,
             Pageable pageable
     );
+
     List<SaleOrder> findByStatusAndDateBefore(String status, LocalDate date);
 
     @Query("SELECT SUM(s.total) FROM SaleOrder s WHERE s.salesPerson.id = :salesPersonId")
@@ -41,15 +52,56 @@ public interface SaleOrderRepo extends JpaRepository<SaleOrder,Integer> {
     @Query("SELECT SUM(s.total) FROM SaleOrder s")
     Double calculateTotalRevenue();
 
-    @Query("SELECT SUM(s.total) FROM SaleOrder s WHERE s.date BETWEEN :from AND :to")
-    Double getRevenueBetweenDates(@Param("from") LocalDate from, @Param("to") LocalDate to);
+    @Query("""
 
-    @Query("SELECT COUNT(s) FROM SaleOrder s WHERE s.date BETWEEN :from AND :to")
-    Long getOrderCountBetweenDates(@Param("from") LocalDate from, @Param("to") LocalDate to);
+            SELECT s.name
+    FROM SaleOrder o
+    JOIN o.salesPerson s
+    GROUP BY s.id, s.name
+    ORDER BY SUM(o.total) DESC
+    """)
+    List<String> findTopSalesPerson();
 
-    @Query("SELECT AVG(s.total) FROM SaleOrder s WHERE s.date BETWEEN :from AND :to")
-    Double getAverageOrderValueBetweenDates(@Param("from") LocalDate from, @Param("to") LocalDate to);
+    // Prevents null by returning 0 if SUM has no result
+    @Query("""
+    SELECT COALESCE(SUM(s.total), 0)
+    FROM SaleOrder s
+    WHERE s.date BETWEEN :from AND :to
+    """)
+    Double getRevenueBetweenDates(
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
+    );
 
-    @Query("SELECT s.salesPerson.name, COUNT(s.id), SUM(s.total) FROM SaleOrder s GROUP BY s.salesPerson.name ORDER BY SUM(s.total) DESC")
+    @Query("""
+    SELECT COUNT(s)
+    FROM SaleOrder s
+    WHERE s.date BETWEEN :from AND :to
+    """)
+    Long getOrderCountBetweenDates(
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
+    );
+
+    @Query("""
+    SELECT COALESCE(AVG(s.total), 0)
+    FROM SaleOrder s
+    WHERE s.date BETWEEN :from AND :to
+    """)
+    Double getAverageOrderValueBetweenDates(
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
+    );
+
+    @Query("""
+    SELECT
+        s.name,
+        COUNT(o),
+        COALESCE(SUM(o.total), 0)
+    FROM SaleOrder o
+    JOIN o.salesPerson s
+    GROUP BY s.id, s.name
+    ORDER BY SUM(o.total) DESC, COUNT(o) DESC
+    """)
     List<Object[]> getSalesPersonRanking();
 }

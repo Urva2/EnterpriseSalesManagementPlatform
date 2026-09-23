@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -103,13 +104,18 @@ public class ProductService {
       throw new RuntimeException("Product Not Exist With ID:"+id);
     }
 
-    public void incrementStock(Integer productId,Integer quantity){
-        if(quantity<=0) {
-            return ;
+    public void incrementStock(Integer productId, Integer quantity) {
+        if (quantity <= 0) {
+            return;
         }
-        Product product=productRepo.findById(productId).orElseThrow(()->new RuntimeException("Product not found"));
-        product.setStockQuantity(product.getStockQuantity()+quantity);
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setStockQuantity(product.getStockQuantity() + quantity);
         productRepo.save(product);
-        }
     }
 
+    public List<ProductDTO> getLowStockProducts(int threshold) {
+        List<Product> products = productRepo.findByStockQuantityLessThanEqualAndIsActiveTrue(threshold);
+        return products.stream().map(productMapper::productDto).toList();
+    }
+}

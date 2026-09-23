@@ -37,4 +37,9 @@
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
             }
         }
+
+        @GetMapping("/search")
+        public ResponseEntity<List<CustomerDTO>> searchCustomerByPhone(@RequestParam String phone){
+            return ResponseEntity.ok(customerService.searchCustomerByPhoneno(phone));
+        }
     }

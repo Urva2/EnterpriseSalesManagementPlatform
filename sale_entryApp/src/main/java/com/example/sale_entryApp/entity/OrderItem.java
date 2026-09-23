@@ -14,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name="orderitem")
-public class OrderItem { //here validation also Done in Service layer
+public class    OrderItem { //here validation also Done in Service layer
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -33,7 +33,6 @@ public class OrderItem { //here validation also Done in Service layer
     @JoinColumn(name="s_id")
     @JsonBackReference(value = "order-item")
     private SaleOrder saleOrder;
-
     @ManyToOne
     @JoinColumn(name="p_id")
     @JsonBackReference(value = "product-item")

@@ -35,17 +35,28 @@ export default function Login() {
       
       // Parse role from JWT to navigate appropriately
       try {
+        // const payload = JSON.parse(atob(data.jwt.split('.')[1]));
+        // const roles = payload["ROLE:"];
+        // const roleString = JSON.stringify(roles || "");
+        //
+        // if (roleString.includes('ROLE_ADMIN') || roleString.includes('ADMIN')) {
+        //   navigate('/admin/dashboard');
+        // } else if (roleString.includes('ROLE_SALES_PERSON') || roleString.includes('SALES_PERSON')) {
+        //   navigate('/salesperson/dashboard');
+        // } else {
+        //   // Fallback
+        //   navigate('/salesperson/dashboard');
+        // }
         const payload = JSON.parse(atob(data.jwt.split('.')[1]));
-        const roles = payload["ROLE:"];
-        const roleString = JSON.stringify(roles || "");
-        
-        if (roleString.includes('ROLE_ADMIN') || roleString.includes('ADMIN')) {
+
+        console.log(payload);
+
+        if (payload.role === 'ADMIN') {
           navigate('/admin/dashboard');
-        } else if (roleString.includes('ROLE_SALES_PERSON') || roleString.includes('SALES_PERSON')) {
+        } else if (payload.role === 'SALES_PERSON') {
           navigate('/salesperson/dashboard');
         } else {
-          // Fallback
-          navigate('/salesperson/dashboard');
+          navigate('/login');
         }
       } catch (e) {
         console.error("Failed to parse JWT role:", e);

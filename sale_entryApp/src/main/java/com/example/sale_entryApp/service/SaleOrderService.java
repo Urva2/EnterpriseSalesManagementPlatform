@@ -1,6 +1,7 @@
 package com.example.sale_entryApp.service;
 
 import com.example.sale_entryApp.dto.ResponseDto.AuthenticatedUser;
+import com.example.sale_entryApp.dto.ResponseDto.ProductDTO;
 import com.example.sale_entryApp.dto.ResponseDto.SaleOrderDTO;
 import com.example.sale_entryApp.entity.*;
 import com.example.sale_entryApp.mapper.SaleOrderMapper;
@@ -216,12 +217,17 @@ public class SaleOrderService {
         }
 
         double total = 0.0;
+
         if (items != null) {
             for (CartItemDTO itemDto : items) {
                 Product product = productRepo.findById(itemDto.getProductId());
+
                 if (product != null && product.getIsActive()) {
+
                     if (deductStock) {
-                        product.setStockQuantity(product.getStockQuantity() - itemDto.getQuantity());
+                        product.setStockQuantity(
+                                product.getStockQuantity() - itemDto.getQuantity()
+                        );
                         productRepo.save(product);
                     }
 
@@ -231,36 +237,49 @@ public class SaleOrderService {
                     orderItem.setQuantity(itemDto.getQuantity());
                     orderItem.setName(product.getName());
                     orderItem.setPrice(product.getPrice());
-                    double subtotal = product.getPrice() * itemDto.getQuantity();
+
+                    double subtotal =
+                            product.getPrice() * itemDto.getQuantity();
+
                     orderItem.setSubtotal(subtotal);
-                    
+
                     orderItemRepo.save(orderItem);
                     saleOrder.getOrderItemList().add(orderItem);
+
                     total += subtotal;
                 }
             }
         }
+
         return total;
     }
 
     @Transactional
     public SaleOrderDTO saveDraft(int orderId, List<CartItemDTO> items) {
+
         SaleOrder saleOrder = saleOrderRepo.findById(orderId);
+
         if (saleOrder == null) {
             throw new RuntimeException("Sale Order Not Found");
         }
 
         double total = syncCartItems(saleOrder, items, false);
-        
+
         saleOrder.setTotal(total);
         saleOrder.setStatus("DRAFT");
+
         SaleOrder saved = saleOrderRepo.save(saleOrder);
+
         return saleOrderMapper.saleOrderDto(saved);
     }
 
     @Transactional
-    public SaleOrderDTO confirmAndCheckout(int orderId, List<CartItemDTO> items) {
+    public SaleOrderDTO confirmAndCheckout(
+            int orderId,
+            List<CartItemDTO> items) {
+
         SaleOrder saleOrder = saleOrderRepo.findById(orderId);
+
         if (saleOrder == null) {
             throw new RuntimeException("Sale Order Not Found");
         }
@@ -271,12 +290,19 @@ public class SaleOrderService {
 
         // 1. Validate Stock first
         for (CartItemDTO itemDto : items) {
+
             Product product = productRepo.findById(itemDto.getProductId());
+
             if (product == null || !product.getIsActive()) {
                 throw new RuntimeException("Product is no longer available.");
             }
+
             if (product.getStockQuantity() < itemDto.getQuantity()) {
-                throw new RuntimeException("Product " + product.getName() + " only has " + product.getStockQuantity() + " units left. Please update your cart.");
+                throw new RuntimeException(
+                        "Product " + product.getName()
+                                + " only has " + product.getStockQuantity()
+                                + " units left. Please update your cart."
+                );
             }
         }
 
@@ -285,8 +311,20 @@ public class SaleOrderService {
 
         saleOrder.setTotal(total);
         saleOrder.setStatus("COMPLETED");
+
         SaleOrder saved = saleOrderRepo.save(saleOrder);
+
         return saleOrderMapper.saleOrderDto(saved);
     }
-}
 
+    public SaleOrderDTO getOrderById(int id) {
+
+        SaleOrder order = saleOrderRepo.findById(id);
+
+        if (order == null) {
+            throw new RuntimeException("Order not found with ID: " + id);
+        }
+
+        return saleOrderMapper.saleOrderDto(order);
+    }
+}
