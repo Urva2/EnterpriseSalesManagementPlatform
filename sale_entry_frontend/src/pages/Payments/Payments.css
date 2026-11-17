@@ -1,0 +1,1140 @@
+/* ==========================================================================
+   PAYMENTS MANAGEMENT — Modern, Minimalist Fintech Styling
+   Inspired by Stripe / Mercury / Linear
+   ========================================================================== */
+
+.payments-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 3.5rem;
+  color: #18181b;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 1. Page Header */
+.payments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.payments-title-group h2 {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #09090b;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.payments-title-group p {
+  color: #71717a;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  background: #f4f4f5;
+  color: #52525b;
+  border: 1px solid #e4e4e7;
+  letter-spacing: 0.03em;
+}
+
+.role-badge.admin-badge {
+  background: #faf5ff;
+  color: #6b21a8;
+  border-color: #f3e8ff;
+}
+
+/* Header Buttons */
+.header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #18181b;
+  color: #ffffff;
+  border: 1px solid #27272a;
+  padding: 0.6rem 1.15rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: all 0.15s ease;
+}
+
+.header-action-btn:hover {
+  background: #27272a;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
+  color: #52525b;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: #f4f4f5;
+  color: #09090b;
+  border-color: #d4d4d8;
+}
+
+/* Segmented Navigation Control */
+.payments-nav-tabs {
+  display: inline-flex;
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+  width: fit-content;
+}
+
+.payments-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: #71717a;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.payments-tab-btn:hover {
+  color: #18181b;
+}
+
+.payments-tab-btn.active {
+  background: #ffffff;
+  color: #09090b;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.tab-badge {
+  background: #e4e4e7;
+  color: #52525b;
+  font-size: 0.725rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.payments-tab-btn.active .tab-badge {
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+/* 2. Minimalist KPI Summary Cards */
+.fintech-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.fintech-kpi-card {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.fintech-kpi-card:hover {
+  border-color: #d4d4d8;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+}
+
+.kpi-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.kpi-label {
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kpi-icon-bubble {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4f4f5;
+  color: #52525b;
+}
+
+.bubble-blue {
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+.bubble-emerald {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.bubble-amber {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.bubble-purple {
+  background: #faf5ff;
+  color: #6b21a8;
+}
+
+.kpi-value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #09090b;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 0.35rem;
+}
+
+.kpi-subtext {
+  font-size: 0.785rem;
+  color: #71717a;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.kpi-subtext .highlight-good {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.kpi-subtext .highlight-warning {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.collection-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #f4f4f5;
+  border-radius: 2px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.collection-progress-fill {
+  height: 100%;
+  background: #16a34a;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* 3. Surface Container Cards */
+.fintech-card {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  padding: 1.4rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+}
+
+.card-title-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.15rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f4f4f5;
+}
+
+.card-title-bar h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #09090b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: -0.015em;
+}
+
+/* 4. Split Dashboard Widgets: Collection Analysis + Quick Settlement */
+.dashboard-widgets-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.admin-insight-box {
+  background: #fafafa;
+  border: 1px solid #e4e4e7;
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.insight-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #52525b;
+}
+
+.insight-metric-row strong {
+  color: #09090b;
+}
+
+/* 5. Record Payment Layout */
+.record-payment-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.order-selector-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #3f3f46;
+}
+
+.form-group .required {
+  color: #e11d48;
+}
+
+.fintech-input,
+.fintech-select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+  font-size: 0.885rem;
+  color: #09090b;
+  background: #ffffff;
+  outline: none;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.fintech-input:focus,
+.fintech-select:focus {
+  border-color: #18181b;
+  box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.06);
+}
+
+.fintech-input:disabled {
+  background: #fafafa;
+  color: #a1a1aa;
+  cursor: not-allowed;
+}
+
+/* Selected Order Financial Snapshot Card */
+.order-snapshot-box {
+  background: #fafafa;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.snapshot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #e4e4e7;
+  padding-bottom: 0.75rem;
+}
+
+.snapshot-order-id {
+  font-weight: 700;
+  color: #09090b;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+.snapshot-customer {
+  font-weight: 500;
+  color: #52525b;
+  font-size: 0.875rem;
+  margin-top: 0.15rem;
+}
+
+.snapshot-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.snapshot-metric {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  padding: 0.65rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.snapshot-metric-label {
+  font-size: 0.685rem;
+  font-weight: 600;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.snapshot-metric-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #09090b;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Payment Method Cards */
+.method-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+}
+
+.method-select-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.85rem 0.5rem;
+  border: 1.5px solid #e4e4e7;
+  background: #ffffff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: #52525b;
+  font-weight: 500;
+  font-size: 0.825rem;
+}
+
+.method-select-card:hover {
+  border-color: #a1a1aa;
+  background: #fafafa;
+}
+
+.method-select-card.selected {
+  border-color: #18181b;
+  background: #fafafa;
+  color: #09090b;
+  font-weight: 600;
+}
+
+.method-select-card .method-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4f4f5;
+  color: #52525b;
+}
+
+.method-select-card.selected .method-icon-wrap {
+  background: #18181b;
+  color: #ffffff;
+}
+
+/* Live Dynamic Calculation Box */
+.live-calc-box {
+  background: #f0fdf4;
+  border: 1px solid #dcfce7;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.live-calc-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.live-calc-label {
+  font-size: 0.775rem;
+  color: #166534;
+  font-weight: 600;
+}
+
+.live-calc-sub {
+  font-size: 0.725rem;
+  color: #15803d;
+}
+
+.live-calc-amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #15803d;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Quick Fill Buttons */
+.quick-amount-buttons {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.quick-btn {
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  color: #52525b;
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-btn:hover {
+  background: #e4e4e7;
+  color: #09090b;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.775rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+/* Submit Actions */
+.form-submit-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.btn-primary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #18181b;
+  background: #18181b;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 0.885rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-primary-action:hover:not(:disabled) {
+  background: #27272a;
+  border-color: #27272a;
+}
+
+.btn-primary-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 6. Minimalist Ledger Table & Filters */
+.history-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.15rem;
+}
+
+.filter-left-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  flex: 1;
+}
+
+.history-search-input {
+  position: relative;
+  min-width: 250px;
+}
+
+.history-search-input input {
+  width: 100%;
+  padding: 0.55rem 0.75rem 0.55rem 2.1rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  color: #09090b;
+  outline: none;
+  background: #fafafa;
+}
+
+.history-search-input input:focus {
+  background: #ffffff;
+  border-color: #18181b;
+}
+
+.history-search-input .search-icon {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a1a1aa;
+  pointer-events: none;
+}
+
+.filter-select {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  color: #3f3f46;
+  background: #ffffff;
+  outline: none;
+}
+
+.btn-reset-filters {
+  background: none;
+  border: 1px solid #e4e4e7;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.775rem;
+  color: #71717a;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-reset-filters:hover {
+  background: #f4f4f5;
+  color: #09090b;
+}
+
+/* Data Table */
+.fintech-table-container {
+  overflow-x: auto;
+  border: 1px solid #e4e4e7;
+  border-radius: 10px;
+}
+
+.fintech-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.fintech-data-table thead {
+  background: #fafafa;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.fintech-data-table th {
+  padding: 0.75rem 0.85rem;
+  font-weight: 600;
+  color: #71717a;
+  font-size: 0.725rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fintech-data-table tbody tr {
+  border-bottom: 1px solid #f4f4f5;
+  transition: background 0.12s ease;
+}
+
+.fintech-data-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.fintech-data-table td {
+  padding: 0.85rem;
+  vertical-align: middle;
+}
+
+.payment-id-tag {
+  font-weight: 600;
+  color: #18181b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.order-link-tag {
+  color: #52525b;
+  font-weight: 500;
+  background: #f4f4f5;
+  padding: 0.15rem 0.45rem;
+  border-radius: 5px;
+  font-size: 0.775rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.amount-text {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #09090b;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Method Badges */
+.method-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.775rem;
+  font-weight: 500;
+}
+
+.method-cash {
+  background: #f4f4f5;
+  color: #27272a;
+  border: 1px solid #e4e4e7;
+}
+
+.method-card {
+  background: #f4f4f5;
+  color: #27272a;
+  border: 1px solid #e4e4e7;
+}
+
+.method-upi {
+  background: #f4f4f5;
+  color: #27272a;
+  border: 1px solid #e4e4e7;
+}
+
+/* Status Pills */
+.status-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.725rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.status-completed {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #dcfce7;
+}
+
+.status-refunded {
+  background: #f4f4f5;
+  color: #52525b;
+  border: 1px solid #e4e4e7;
+}
+
+.status-pending {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fef3c7;
+}
+
+.status-failed {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fee2e2;
+}
+
+/* Table Actions */
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.icon-action-btn {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  color: #52525b;
+  padding: 0.35rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.icon-action-btn:hover {
+  background: #f4f4f5;
+  color: #09090b;
+  border-color: #d4d4d8;
+}
+
+.icon-action-btn.refund-btn:hover {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+/* Pagination Bar */
+.table-pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #71717a;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.page-btn {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  color: #3f3f46;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #f4f4f5;
+  border-color: #d4d4d8;
+}
+
+.page-btn.active {
+  background: #18181b;
+  border-color: #18181b;
+  color: #ffffff;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 7. Modal & Drawer Components */
+.details-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 9, 11, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.details-modal-box {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.details-modal-header {
+  padding: 1.15rem 1.35rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fafafa;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.details-modal-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #09090b;
+}
+
+.modal-close-icon {
+  background: none;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 6px;
+  display: flex;
+}
+
+.modal-close-icon:hover {
+  background: #f4f4f5;
+  color: #09090b;
+}
+
+.details-modal-body {
+  padding: 1.35rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detail-amount-hero {
+  background: #fafafa;
+  border: 1px solid #e4e4e7;
+  border-radius: 10px;
+  padding: 1.15rem;
+  text-align: center;
+}
+
+.detail-amount-hero .hero-label {
+  font-size: 0.725rem;
+  color: #71717a;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.detail-amount-hero .hero-val {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #09090b;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail-grid-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.detail-cell {
+  background: #fafafa;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid #e4e4e7;
+}
+
+.detail-cell-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #71717a;
+  margin-bottom: 0.15rem;
+  text-transform: uppercase;
+}
+
+.detail-cell-val {
+  font-size: 0.885rem;
+  font-weight: 600;
+  color: #09090b;
+}
+
+/* Confirmation Dialog Box */
+.confirm-dialog-box {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 420px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.confirm-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: #f4f4f5;
+  color: #18181b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.85rem auto;
+}
+
+.confirm-dialog-box h4 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #09090b;
+  margin: 0 0 0.4rem 0;
+}
+
+.confirm-dialog-box p {
+  color: #71717a;
+  font-size: 0.85rem;
+  margin: 0 0 1.25rem 0;
+  line-height: 1.4;
+}
+
+.confirm-breakdown {
+  background: #fafafa;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+  margin-bottom: 1.25rem;
+  text-align: left;
+  font-size: 0.825rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.confirm-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+}
+
+/* Alert Toasts */
+.alert-toast {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.alert-toast-success {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #dcfce7;
+}
+
+.alert-toast-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fee2e2;
+}
+
+.empty-state-box {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #71717a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.empty-state-box h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #09090b;
+}
+
+.empty-state-box p {
+  margin: 0;
+  font-size: 0.85rem;
+  max-width: 300px;
+}
+
+/* Responsive queries */
+@media (max-width: 1024px) {
+  .fintech-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dashboard-widgets-grid {
+    grid-template-columns: 1fr;
+  }
+  .record-payment-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .fintech-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .payments-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .payments-nav-tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .payments-tab-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.775rem;
+  }
+  .method-card-grid {
+    grid-template-columns: 1fr;
+  }
+  .detail-grid-sections {
+    grid-template-columns: 1fr;
+  }
+}

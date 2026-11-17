@@ -31,7 +31,8 @@ export default function SalespersonCustomers() {
   };
 
   const filteredCustomers = customers.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (c.name && c.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (c.phoneno && c.phoneno.includes(searchQuery.trim()))
   );
 
   const handleRegister = async (e) => {
@@ -39,7 +40,6 @@ export default function SalespersonCustomers() {
     if(!customerName || !address || !phoneNumber) return;
 
     try {
-      // Backend expects 'phoneno' and exactly 10 digits
       const sanitizedPhone = phoneNumber.replace(/\D/g, '').slice(-10);
       
       const payload = {
@@ -60,7 +60,7 @@ export default function SalespersonCustomers() {
       if (typeof backendMsg === 'object') {
         backendMsg = JSON.stringify(backendMsg);
       }
-      alert(`[DEBUG] Error: ${backendMsg}\nStatus: ${err.response?.status}\nAxiosMsg: ${err.message}\nHost: ${window.location.hostname}`);
+      alert(`Error: ${backendMsg}`);
     }
   };
 
@@ -84,7 +84,7 @@ export default function SalespersonCustomers() {
           <Search size={18} className="search-icon" />
           <input 
             type="text" 
-            placeholder="Search customers..." 
+            placeholder="Search customers by name or phone..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -100,96 +100,86 @@ export default function SalespersonCustomers() {
             <UserPlus size={48} />
           </div>
           <h3>No customers yet</h3>
-          <p>Register your first customer to get started</p>
+          <p>Add your first customer to start creating sales orders.</p>
           <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
-            Register Customer
+            <Plus size={18} />
+            <span>Add Customer</span>
           </button>
         </div>
       ) : (
         <div className="sp-customers-grid">
-          {filteredCustomers.map(customer => {
-            const initials = customer.name.substring(0, 2).toUpperCase();
-            const color = ['blue', 'purple', 'emerald', 'amber'][customer.id % 4] || 'blue';
-            return (
-              <div className="sp-customer-card" key={customer.id}>
-                <div className={`sp-customer-avatar gradient-${color}`}>
-                  {initials}
+          {filteredCustomers.map(c => (
+            <div key={c.id} className="sp-customer-card">
+              <div className="card-top">
+                <div className="customer-avatar-small">
+                  {c.name ? c.name.charAt(0).toUpperCase() : 'C'}
                 </div>
-                <div className="sp-customer-info">
-                  <h4>{customer.name}</h4>
-                  <div className="sp-customer-detail">
-                    <Phone size={14} className="detail-icon" />
-                    <span>{customer.phoneno}</span>
+                <div className="customer-main-info">
+                  <h4>{c.name}</h4>
+                  <div className="customer-phone">
+                    <Phone size={13} />
+                    <span>{c.phoneno}</span>
                   </div>
-                  <div className="sp-customer-detail">
-                    <MapPin size={14} className="detail-icon" />
-                    <span className="truncate-text">{customer.address}</span>
-                  </div>
-                </div>
-                <div className="sp-customer-chevron hidden-desktop">
-                  <ChevronRight size={20} color="#cbd5e1" />
                 </div>
               </div>
-            );
-          })}
+              <div className="customer-address">
+                <MapPin size={13} className="pin-icon" />
+                <span>{c.address}</span>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* 4. Registration Modal */}
+      {/* 4. Add Customer Modal */}
       {isModalOpen && (
-        <div className="sp-modal-backdrop">
-          <div className="sp-modal-container">
-            <div className="sp-modal-header">
-              <h3>Register New Customer</h3>
-              <button className="sp-close-btn" onClick={() => setIsModalOpen(false)}>
+        <div className="modal-backdrop">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h3>Register Customer</h3>
+              <button className="close-btn" onClick={() => setIsModalOpen(false)}>
                 <X size={20} />
               </button>
             </div>
-            
-            <form onSubmit={handleRegister} className="sp-modal-body">
-              <div className="sp-form-group">
-                <label>Customer Name</label>
-                <input 
-                  type="text" 
-                  placeholder="Enter full name" 
-                  value={customerName}
-                  onChange={e => setCustomerName(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="sp-form-group">
-                <label>Address</label>
-                <textarea 
-                  rows="3" 
-                  placeholder="Enter full address" 
-                  value={address}
-                  onChange={e => setAddress(e.target.value)}
-                  required
-                ></textarea>
-              </div>
-
-              <div className="sp-form-group">
-                <label>Phone Number</label>
-                <div className="sp-input-with-icon">
-                  <Phone size={16} className="input-icon" />
+            <form onSubmit={handleRegister}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Customer Name</label>
                   <input 
-                    type="tel" 
-                    placeholder="10-digit phone number" 
-                    value={phoneNumber}
-                    onChange={e => setPhoneNumber(e.target.value)}
+                    type="text" 
+                    placeholder="e.g. John Doe" 
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
                     required
                   />
                 </div>
+                <div className="form-group">
+                  <label>Phone Number (10 digits)</label>
+                  <input 
+                    type="tel" 
+                    placeholder="e.g. 9876543210" 
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Address</label>
+                  <textarea 
+                    placeholder="Enter full address" 
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    required
+                    rows="3"
+                  />
+                </div>
               </div>
-
-              <div className="sp-modal-footer">
+              <div className="modal-footer">
                 <button type="button" className="btn-ghost" onClick={() => setIsModalOpen(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn-dark">
-                  <UserPlus size={18} />
-                  Register Customer
+                <button type="submit" className="btn-primary">
+                  Save Customer
                 </button>
               </div>
             </form>

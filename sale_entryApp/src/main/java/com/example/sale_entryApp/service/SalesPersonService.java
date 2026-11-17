@@ -15,8 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SalesPersonService {
@@ -26,55 +25,53 @@ public class SalesPersonService {
     private SaleOrderRepo saleOrderRepo;
     @Autowired
     private SalesPersonMapper salesPersonMapper;
-//    @Bean
-//    public PasswordEncoder passwordEncoder() {
-//        return new BCryptPasswordEncoder();
-//    }
-@Autowired
-PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Transactional
     public SalesPersonDTO createSalesPerson(SalesPersonRequestDto dto)
     {
-        System.out.println(dto.getName());
-        SalesPerson salesPerson=salesPersonMapper.toEntity(dto);
-        System.out.println(salesPerson.getName());
-        SalesPerson existing=salesPersonRepo.findByEmail(salesPerson.getEmail());
-        if(existing!=null)
+        SalesPerson salesPerson = salesPersonMapper.toEntity(dto);
+        SalesPerson existing = salesPersonRepo.findByEmail(salesPerson.getEmail());
+        if(existing != null)
         {
-            throw new RuntimeException("Email Already Exist:"+existing.getEmail());
+            throw new RuntimeException("Email Already Exist:" + existing.getEmail());
         }
 
         String encoded = passwordEncoder.encode(salesPerson.getPassword());
         salesPerson.setPassword(encoded);
-        SalesPerson saved=salesPersonRepo.save(salesPerson);
+        salesPerson.setIsActive(true);
+        SalesPerson saved = salesPersonRepo.save(salesPerson);
         return salesPersonMapper.salesPersonDto(saved);
     }
+
+    @Transactional(readOnly = true)
     public SalesPersonDTO findSalespersonByid(int id){
-        SalesPerson salesPerson=salesPersonRepo.findById(id);
-        if(salesPerson!=null){
+        SalesPerson salesPerson = salesPersonRepo.findById(id);
+        if(salesPerson != null){
             return salesPersonMapper.salesPersonDto(salesPerson);
         }
-        throw new RuntimeException("SalesPerson Not exist with Id:"+id);
+        throw new RuntimeException("SalesPerson Not exist with Id:" + id);
     }
-    //Urva :12-06
+
+    @Transactional(readOnly = true)
     public Page<SalesPersonDTO> getAllSalesPersons(Pageable pageable) {
-        // Fetch the page from DB
         Page<SalesPerson> salesPeoplePage = salesPersonRepo.findAll(pageable);
         return salesPeoplePage.map(salesPersonMapper::salesPersonDto);
     }
-    //Urva :12-06
+
+    @Transactional(readOnly = true)
     public Page<SalesPersonDTO> searchSalesPersonsByName(String name, Pageable pageable) {
         Page<SalesPerson> salesPeoplePage;
-
-        // Check if the user provided a keyword to search for
         if (name != null && !name.trim().isEmpty()) {
             salesPeoplePage = salesPersonRepo.findByNameContainingIgnoreCase(name, pageable);
         } else {
-            // Fallback: If no name is provided, return all salespersons
             salesPeoplePage = salesPersonRepo.findAll(pageable);
         }
         return salesPeoplePage.map(salesPersonMapper::salesPersonDto);
     }
-    //Nidhi : 10/6/26
+
+    @Transactional(readOnly = true)
     public SalesPersonDTO getMyProfile()
     {
         Authentication authentication =
@@ -88,12 +85,12 @@ PasswordEncoder passwordEncoder;
         }
 
         int id = Math.toIntExact(user.getId());
-        SalesPerson salesPerson = salesPersonRepo.findById((int) id); //find the salesperson with that id
+        SalesPerson salesPerson = salesPersonRepo.findById(id);
         if(salesPerson == null)
         {
             throw new RuntimeException("SalesPerson not found with id: " + id);
         }
-        return salesPersonMapper.salesPersonDto(salesPerson); //return the details
+        return salesPersonMapper.salesPersonDto(salesPerson);
     }
 
     //Nidhi 10/6/26
@@ -110,17 +107,17 @@ PasswordEncoder passwordEncoder;
         }
 
         int id = Math.toIntExact(user.getId());
-        SalesPerson salesPerson = salesPersonRepo.findById((int) id);
+        SalesPerson salesPerson = salesPersonRepo.findById(id);
         if (salesPerson == null) {
             throw new RuntimeException("SalesPerson not found with id: " + id);
         }
         String name = updateProfileRequestDto.getName();
         String phone = updateProfileRequestDto.getPhone();
-        if(name!=null && !name.isBlank())
+        if(name != null && !name.isBlank())
         {
            salesPerson.setName(name);
         }
-        if(phone!=null && !phone.isBlank())
+        if(phone != null && !phone.isBlank())
         {
             salesPerson.setPhoneno(phone);
         }
@@ -129,5 +126,27 @@ PasswordEncoder passwordEncoder;
         }
         SalesPerson updated = salesPersonRepo.save(salesPerson);
         return salesPersonMapper.salesPersonDto(updated);
+    }
+
+    @Transactional
+    public SalesPersonDTO deactivateSalesPerson(int id) {
+        SalesPerson salesPerson = salesPersonRepo.findById(id);
+        if (salesPerson == null) {
+            throw new RuntimeException("SalesPerson not found with id: " + id);
+        }
+        salesPerson.setIsActive(false);
+        salesPersonRepo.save(salesPerson);
+        return salesPersonMapper.salesPersonDto(salesPerson);
+    }
+
+    @Transactional
+    public SalesPersonDTO activateSalesPerson(int id) {
+        SalesPerson salesPerson = salesPersonRepo.findById(id);
+        if (salesPerson == null) {
+            throw new RuntimeException("SalesPerson not found with id: " + id);
+        }
+        salesPerson.setIsActive(true);
+        salesPersonRepo.save(salesPerson);
+        return salesPersonMapper.salesPersonDto(salesPerson);
     }
 }

@@ -33,7 +33,7 @@ public class BasicSecurity {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(configurer -> configurer
                 // 1. Public Endpoints (Registration & Login)
-                .requestMatchers(HttpMethod.POST, "/salesperson/register", "/admin/register", "/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/salesperson/register", "/admin/register", "/auth/login", "/auth/refresh", "/auth/logout").permitAll()
 
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // 2. Product Endpoints
@@ -43,12 +43,15 @@ public class BasicSecurity {
                 .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
 
                 // 3. SalesPerson & Customer Endpoints
-                .requestMatchers(HttpMethod.POST, "/customers/register").hasRole("SALES_PERSON")
+                .requestMatchers("/customers/**").hasAnyRole("SALES_PERSON", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/salesperson/me").hasRole("SALES_PERSON")
                 .requestMatchers(HttpMethod.PATCH, "/salesperson/me").hasRole("SALES_PERSON")
                 .requestMatchers(HttpMethod.GET, "/salesperson", "/salesperson/search").hasRole("ADMIN")
 
-                // 4. Sale Order Endpoints (Admin specific management)
+                // 4. Specific Sale Order Endpoints
+                .requestMatchers("/payments/**").hasAnyRole("SALES_PERSON", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/orders/removeItem/**").hasRole("SALES_PERSON")
+                .requestMatchers(HttpMethod.GET, "/orders/{id}", "/orders/{id}/invoice").hasAnyRole("ADMIN", "SALES_PERSON")
                 .requestMatchers(HttpMethod.GET, "/orders/viewOrders", "/orders/search", "/orders/search-status").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/admin/dashboard/stats").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/orders/**").hasRole("ADMIN")
@@ -65,7 +68,7 @@ public class BasicSecurity {
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         http.cors(Customizer.withDefaults());
-        http.httpBasic(Customizer.withDefaults());
+        http.httpBasic(httpBasic -> httpBasic.disable());
         http.csrf(csrf -> csrf.disable());
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

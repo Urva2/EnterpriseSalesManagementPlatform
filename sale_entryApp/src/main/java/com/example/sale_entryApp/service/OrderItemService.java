@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,8 @@ public class OrderItemService {
     private ProductRepo productRepo;
     @Autowired
     private SaleOrderRepo saleOrderRepo;
+
+    @Transactional
     public OrderItem addproduct(int productId, int orderId, int quantity) {
         SaleOrder saleOrder = saleOrderRepo.findById(orderId);
         Product product = productRepo.findById(productId);
@@ -67,6 +70,8 @@ public class OrderItemService {
         }
         throw new RuntimeException("Product or Saleorder Does not exist or Product does not have enough Quantity:");
     }
+
+    @Transactional
     public void plusproduct(int orderItmeId){
         OrderItem orderItem=orderItemRepo.findById(orderItmeId);
         Product product =productRepo.findById(orderItem.getProduct().getId());
@@ -87,6 +92,8 @@ public class OrderItemService {
             throw new RuntimeException("Sorry,Product is outof Stock!");
         }
     }
+
+    @Transactional
     public void minusproduct(int orderItmeId){
         OrderItem orderItem=orderItemRepo.findById(orderItmeId);
         Product product=orderItem.getProduct();
@@ -114,5 +121,28 @@ public class OrderItemService {
             saleOrderRepo.save(saleOrder);
             orderItemRepo.delete(orderItem);
         }
+    }
+
+    @Transactional
+    public void removeItem(int orderItemId) {
+        OrderItem orderItem = orderItemRepo.findById(orderItemId);
+        if (orderItem == null) {
+            throw new RuntimeException("Order item not found with ID: " + orderItemId);
+        }
+        Product product = orderItem.getProduct();
+        if (product != null) {
+            product.setStockQuantity(product.getStockQuantity() + orderItem.getQuantity());
+            productRepo.save(product);
+        }
+        SaleOrder saleOrder = orderItem.getSaleOrder();
+        if (saleOrder != null) {
+            List<OrderItem> list = saleOrder.getOrderItemList();
+            if (list != null) {
+                list.remove(orderItem);
+                saleOrder.setTotal(saleOrder.calctotal(list));
+                saleOrderRepo.save(saleOrder);
+            }
+        }
+        orderItemRepo.delete(orderItem);
     }
 }

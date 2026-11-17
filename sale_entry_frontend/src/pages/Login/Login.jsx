@@ -19,13 +19,13 @@ export default function Login() {
     setError('');
 
     if (name.trim() === '' || password.trim() === '') {
-      setError('Invalid credentials');
+      setError('Please enter both username/email and password');
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await api.post('/auth/login', { name, password });
+      const response = await api.post('/auth/login', { name: name.trim(), password: password.trim() });
       
       const data = response.data;
       
@@ -36,15 +36,13 @@ export default function Login() {
       // Parse role from JWT to navigate appropriately
       try {
         const payload = JSON.parse(atob(data.jwt.split('.')[1]));
-        const roles = payload["ROLE:"];
-        const roleString = JSON.stringify(roles || "");
-        
-        if (roleString.includes('ROLE_ADMIN') || roleString.includes('ADMIN')) {
+        console.log("Logged in payload:", payload);
+
+        if (payload.role === 'ADMIN') {
           navigate('/admin/dashboard');
-        } else if (roleString.includes('ROLE_SALES_PERSON') || roleString.includes('SALES_PERSON')) {
+        } else if (payload.role === 'SALES_PERSON') {
           navigate('/salesperson/dashboard');
         } else {
-          // Fallback
           navigate('/salesperson/dashboard');
         }
       } catch (e) {
@@ -52,7 +50,17 @@ export default function Login() {
         navigate('/salesperson/dashboard'); // fallback
       }
     } catch (err) {
-      setError('Invalid credentials');
+      console.error("Login error:", err);
+      if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+        setError('Cannot connect to backend server. Make sure Spring Boot is running on port 8080.');
+      } else {
+        const serverMsg = err.response?.data?.msg || err.response?.data?.message || err.response?.data;
+        if (typeof serverMsg === 'string') {
+          setError(serverMsg);
+        } else {
+          setError('Invalid credentials. Please check your username/email and password.');
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -65,8 +73,8 @@ export default function Login() {
         <div className="toast-error">
           <AlertCircle size={20} />
           <div className="toast-text">
-            <strong>Invalid credentials</strong>
-            <p>Please check and try again</p>
+            <strong>Login Failed</strong>
+            <p>{error}</p>
           </div>
         </div>
       )}
@@ -82,15 +90,16 @@ export default function Login() {
 
         <form onSubmit={handleLogin} className="login-form">
           <div className="input-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">Username or Email</label>
             <div className={`input-wrapper ${error ? 'input-error' : ''}`}>
               <User size={18} className="input-icon" />
               <input 
                 id="username"
                 type="text" 
-                placeholder="Enter your username" 
+                placeholder="Enter your username or email" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                autoComplete="username"
               />
             </div>
           </div>
@@ -105,6 +114,7 @@ export default function Login() {
                 placeholder="Enter your password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
               />
               <button 
                 type="button" 
@@ -115,7 +125,6 @@ export default function Login() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {error && <span className="error-message"><AlertCircle size={14}/> Invalid username or password</span>}
           </div>
 
           <button type="submit" className="login-submit" disabled={isLoading}>
@@ -123,12 +132,8 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="login-divider">
-          <span>or</span>
-        </div>
-
         <div className="login-footer">
-          Don't have an account? <a href="/register">Register here</a>
+          Don't have an account? <a href="/register">Create an account</a>
         </div>
       </div>
     </div>

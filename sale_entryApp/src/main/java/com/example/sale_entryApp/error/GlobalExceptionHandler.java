@@ -45,4 +45,12 @@ public class GlobalExceptionHandler {
         errorResponse.setStatus(HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorResponse,HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidToken(InvalidTokenException ex) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMsg(ex.getMessage());
+        errorResponse.setStatus(HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
 }
