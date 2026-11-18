@@ -1,13 +1,12 @@
 package com.example.sale_entryApp.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,7 +29,9 @@ public class SalesPerson {
     private String role;
     @Column
     private String phoneno;
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
     @OneToMany(mappedBy = "salesPerson")
-    //@JsonManagedReference(value = "salesperson-order")
     private List<SaleOrder> saleOrderList;
 }

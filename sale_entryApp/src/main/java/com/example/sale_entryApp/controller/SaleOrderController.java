@@ -1,5 +1,6 @@
 package com.example.sale_entryApp.controller;
 
+import com.example.sale_entryApp.dto.InvoiceDto;
 import com.example.sale_entryApp.dto.ResponseDto.AuthenticatedUser;
 import com.example.sale_entryApp.dto.ResponseDto.SaleOrderDTO;
 import com.example.sale_entryApp.dto.RequestDto.CheckoutRequestDTO;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 //Request Dto of SaleOrder and OrderItems is not made bcz,this 2 entity is not getting any sensitive data from input
@@ -93,6 +95,63 @@ public class SaleOrderController {
             throw new RuntimeException(e);
         }
     }
+
+    //For Completely Removing An Item From The Cart (Restoring Stock)
+    @DeleteMapping("/removeItem/{orderItemId}")
+    public ResponseEntity<?> removeItem(@PathVariable int orderItemId) {
+        try {
+            orderItemService.removeItem(orderItemId);
+            return ResponseEntity.ok("Item removed successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    //For Getting Order Details By ID
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getOrderById(@PathVariable int id) {
+        try {
+            SaleOrderDTO order = saleOrderService.getOrderById(id);
+            return ResponseEntity.ok(order);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    //For Updating Remarks on Order
+    @PutMapping("/{id}/remarks")
+    public ResponseEntity<?> updateRemarks(@PathVariable int id, @RequestBody Map<String, String> body) {
+        try {
+            String remarks = body.get("remarks");
+            SaleOrderDTO updated = saleOrderService.updateRemarks(id, remarks);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    //For Applying Discount Percentage on Order
+    @PutMapping("/{id}/discount")
+    public ResponseEntity<?> applyDiscount(@PathVariable int id, @RequestParam double percent) {
+        try {
+            SaleOrderDTO updated = saleOrderService.applyDiscount(id, percent);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    //For Generating Structured Invoice
+    @GetMapping("/{id}/invoice")
+    public ResponseEntity<?> generateInvoice(@PathVariable int id) {
+        try {
+            InvoiceDto invoice = saleOrderService.generateInvoice(id);
+            return ResponseEntity.ok(invoice);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
     //For Updating Status Of SalesOrder
     @PutMapping("/updatestatus/{orderId}")
     public ResponseEntity<?> statusupdate(@RequestBody SaleOrder saleOrder,@PathVariable int orderId){
@@ -225,10 +284,6 @@ public class SaleOrderController {
         return ResponseEntity.ok(orders);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<SaleOrderDTO> getOrderById(@PathVariable int id) {
-        return ResponseEntity.ok(saleOrderService.getOrderById(id));
-    }
 }
 
 //http://localhost:8080/orders

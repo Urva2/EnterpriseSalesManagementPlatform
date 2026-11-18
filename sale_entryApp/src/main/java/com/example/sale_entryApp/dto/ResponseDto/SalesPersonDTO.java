@@ -8,9 +8,10 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 public class SalesPersonDTO {
+    private Integer id;
     private String name;
     private String email;
     private String role;
     private String phoneno;
+    private Boolean isActive;
 }
-

@@ -1,6 +1,5 @@
 package com.example.sale_entryApp.service;
 
-
 import com.example.sale_entryApp.dto.RequestDto.ProductRequestDto;
 import com.example.sale_entryApp.dto.ResponseDto.ProductDTO;
 import com.example.sale_entryApp.entity.Product;
@@ -10,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -21,11 +21,13 @@ public class ProductService {
     public ProductRepo productRepo;
     @Autowired
     public ProductMapper productMapper;
-    //10-6-26 name:urva ,changed 12-06
+
+    @Transactional(readOnly = true)
     public Page<ProductDTO> getAllProduct(Pageable pageable) {
         return productRepo.findAllByIsActiveTrue(pageable).map(productMapper::productDto);
     }
 
+    @Transactional
     public ProductDTO addProduct(ProductRequestDto dto){
         Product product=productMapper.toEntity(dto);
         System.out.println("stockQuantity:"+product.getStockQuantity());
@@ -43,6 +45,8 @@ public class ProductService {
         Product saved=productRepo.save(product);
         return productMapper.productDto(saved);
     }
+
+    @Transactional(readOnly = true)
     public ProductDTO findProductById(int id){
         Product product=productRepo.findById(id);
         if(product!=null)
@@ -52,6 +56,7 @@ public class ProductService {
         throw new RuntimeException("Product Not Exist With ID:"+id);
     }
 
+    @Transactional
     public ProductDTO updateproduct(ProductRequestDto productRequestDto,int id){
         Product product=productRepo.findById(id);
         if (!product.getIsActive()) {
@@ -81,27 +86,33 @@ public class ProductService {
         }
         throw new RuntimeException("Product Object Has Not Any Update Details!");
     }
-    //10-6-26 name:urva
+
+    @Transactional(readOnly = true)
     public Page<ProductDTO> findAllProductByName(String name, Pageable pageable) {
         Page<Product> productPage;
-        // Check if the user provided a name to search for
         if (name != null && !name.trim().isEmpty()) {
             productPage = productRepo.findByNameContainingIgnoreCaseAndIsActiveTrue(name, pageable);
         } else {
-            // If no name is provided, just return all products paginated
             productPage = productRepo.findAllByIsActiveTrue(pageable);
         }
-        // Map the resulting page to a DTO page
         return productPage.map(productMapper::productDto);
     }
-  public ProductDTO deleteProduct(int id){
-       Product product=productRepo.findById(id);
-       if(product!=null && product.getIsActive()){
-           product.setIsActive(false);
-           productRepo.save(product);
-           return productMapper.productDto(product);
-       }
-      throw new RuntimeException("Product Not Exist With ID:"+id);
+
+    @Transactional
+    public ProductDTO deleteProduct(int id){
+        Product product=productRepo.findById(id);
+        if(product!=null && product.getIsActive()){
+            product.setIsActive(false);
+            productRepo.save(product);
+            return productMapper.productDto(product);
+        }
+        throw new RuntimeException("Product Not Exist With ID:"+id);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductDTO> getLowStockProducts(int threshold, Pageable pageable) {
+        return productRepo.findByStockQuantityLessThanEqualAndIsActiveTrue(threshold, pageable)
+                .map(productMapper::productDto);
     }
 
     public void incrementStock(Integer productId, Integer quantity) {

@@ -13,6 +13,12 @@ public class SaleOrderDTO {
     private LocalDate date;
     private double total;
     private String status;
+    private String remarks;
+    private Double discountPercent;
+    private Double discountAmount;
+    private Double paidAmount;
+    private String paymentStatus;
+    private Double remainingBalance;
     private String customerName;
     private List<OrderItemDTO> orderItemList;
 }

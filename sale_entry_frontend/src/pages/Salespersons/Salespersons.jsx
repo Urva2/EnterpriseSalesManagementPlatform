@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Mail, Phone, Copy, X, TrendingUp, IndianRupee, Package, UserMinus } from 'lucide-react';
+import { Search, Eye, Mail, Phone, Copy, X, TrendingUp, IndianRupee, Package, UserMinus, UserCheck } from 'lucide-react';
 import api from '../../services/api';
 import './Salespersons.css';
 
@@ -7,6 +7,7 @@ export default function Salespersons() {
   const [salespersons, setSalespersons] = useState([]);
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const colors = ['blue', 'purple', 'emerald', 'amber'];
 
@@ -24,7 +25,8 @@ export default function Salespersons() {
       const data = (response.data.content || []).map((sp, idx) => ({
         ...sp,
         phone: sp.phoneno,
-        status: "Active", // Assuming all returned are active for now
+        isActive: sp.isActive !== false,
+        status: sp.isActive !== false ? "Active" : "Inactive",
         initials: getInitials(sp.name),
         color: colors[idx % colors.length]
       }));
@@ -41,6 +43,30 @@ export default function Salespersons() {
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
+
+  const handleToggleStatus = async (person) => {
+    try {
+      setIsUpdating(true);
+      if (person.isActive) {
+        await api.put(`/admin/salespersons/${person.id}/deactivate`);
+      } else {
+        await api.put(`/admin/salespersons/${person.id}/activate`);
+      }
+      await fetchSalespersons(searchQuery);
+      if (selectedPerson && selectedPerson.id === person.id) {
+        setSelectedPerson(prev => ({
+          ...prev,
+          isActive: !prev.isActive,
+          status: !prev.isActive ? "Active" : "Inactive"
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to update salesperson status:", err);
+      alert("Failed to update salesperson status");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <div className="salespersons-container">
@@ -91,7 +117,7 @@ export default function Salespersons() {
                 <td className="text-muted">{person.email}</td>
                 <td className="text-muted">{person.phone}</td>
                 <td>
-                  <span className="badge badge-success">{person.status}</span>
+                  <span className={`badge ${person.isActive ? 'badge-success' : 'badge-danger'}`}>{person.status}</span>
                 </td>
                 <td>
                   <button className="icon-btn" title="View Details" onClick={() => setSelectedPerson(person)}>
@@ -112,7 +138,7 @@ export default function Salespersons() {
               <div className={`avatar-circle large avatar-${person.color}`}>
                 {person.initials}
               </div>
-              <span className="badge badge-success">{person.status}</span>
+              <span className={`badge ${person.isActive ? 'badge-success' : 'badge-danger'}`}>{person.status}</span>
             </div>
             <div className="sp-card-details">
               <span className="sp-name">{person.name}</span>
@@ -153,14 +179,14 @@ export default function Salespersons() {
                   {selectedPerson.initials}
                 </div>
                 <h2>{selectedPerson.name}</h2>
-                <span className="badge badge-success">{selectedPerson.status}</span>
+                <span className={`badge ${selectedPerson.isActive ? 'badge-success' : 'badge-danger'}`}>{selectedPerson.status}</span>
               </div>
 
               <div className="panel-contact-info">
                 <div className="contact-item">
                   <Mail size={18} className="contact-icon" />
                   <span>{selectedPerson.email}</span>
-                  <button className="icon-btn small ml-auto" title="Copy"><Copy size={14}/></button>
+                  <button className="icon-btn small ml-auto" title="Copy" onClick={() => navigator.clipboard.writeText(selectedPerson.email)}><Copy size={14}/></button>
                 </div>
                 <div className="contact-item">
                   <Phone size={18} className="contact-icon" />
@@ -173,30 +199,22 @@ export default function Salespersons() {
                 <div className="stats-list">
                   <div className="stat-row">
                     <div className="stat-label">
-                      <Package size={16} /> Total Orders
+                      <Package size={16} /> Role
                     </div>
-                    <span className="stat-val font-bold">N/A</span>
-                  </div>
-                  <div className="stat-row">
-                    <div className="stat-label">
-                      <IndianRupee size={16} /> Revenue
-                    </div>
-                    <span className="stat-val text-success font-bold">N/A</span>
-                  </div>
-                  <div className="stat-row">
-                    <div className="stat-label">
-                      <TrendingUp size={16} /> Active Orders
-                    </div>
-                    <span className="stat-val text-blue font-bold">N/A</span>
+                    <span className="stat-val font-bold">{selectedPerson.role || 'SALESPERSON'}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="slide-panel-footer">
-              <button className="btn-danger-outline">
-                <UserMinus size={18} />
-                Deactivate Salesperson
+              <button 
+                className={selectedPerson.isActive ? "btn-danger-outline" : "btn-primary"}
+                onClick={() => handleToggleStatus(selectedPerson)}
+                disabled={isUpdating}
+              >
+                {selectedPerson.isActive ? <UserMinus size={18} /> : <UserCheck size={18} />}
+                {selectedPerson.isActive ? 'Deactivate Salesperson' : 'Activate Salesperson'}
               </button>
             </div>
           </div>

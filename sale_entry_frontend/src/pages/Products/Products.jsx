@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit2, Trash2, X, Package, IndianRupee, Hash, Scale } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, X, Package, IndianRupee, Hash, Scale, AlertTriangle } from 'lucide-react';
 import api from '../../services/api';
 import './Products.css';
 
@@ -7,6 +7,7 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterMode, setFilterMode] = useState('all'); // 'all' | 'low-stock'
   const [editingProduct, setEditingProduct] = useState(null);
 
   // Form state
@@ -16,9 +17,14 @@ export default function Products() {
   const [stockQuantity, setStockQuantity] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchProducts = async (query = '') => {
+  const fetchProducts = async (query = '', mode = filterMode) => {
     try {
-      const url = query ? `/products/search?keyword=${query}` : '/products';
+      let url = '/products';
+      if (mode === 'low-stock') {
+        url = '/admin/products/low-stock?threshold=10';
+      } else if (query) {
+        url = `/products/search?keyword=${query}`;
+      }
       const response = await api.get(url);
       setProducts(response.data.content || []);
     } catch (error) {
@@ -28,11 +34,11 @@ export default function Products() {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchProducts(searchQuery);
+      fetchProducts(searchQuery, filterMode);
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
+  }, [searchQuery, filterMode]);
 
   const handleAddClick = () => {
     setEditingProduct(null);
@@ -75,7 +81,7 @@ export default function Products() {
       setItemWeight('');
       setPrice('');
       setStockQuantity('');
-      fetchProducts(searchQuery);
+      fetchProducts(searchQuery, filterMode);
     } catch (error) {
       console.error("Error saving product", error);
     } finally {
@@ -87,7 +93,7 @@ export default function Products() {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         await api.delete(`/products/${id}`);
-        fetchProducts(searchQuery);
+        fetchProducts(searchQuery, filterMode);
       } catch (error) {
         console.error("Error deleting product", error);
       }
@@ -96,7 +102,7 @@ export default function Products() {
 
   const getCalculatedStatus = (stock) => {
     if (stock <= 0) return 'Out of Stock';
-    if (stock < 10) return 'Low Stock';
+    if (stock <= 10) return 'Low Stock';
     return 'In Stock';
   };
 
@@ -124,7 +130,7 @@ export default function Products() {
       <div className="page-header">
         <div className="header-titles">
           <h2>Product Catalog</h2>
-          <p>Manage your inventory</p>
+          <p>Manage your inventory & stock levels</p>
         </div>
         <button className="btn-primary" onClick={handleAddClick}>
           <Plus size={18} />
@@ -132,9 +138,9 @@ export default function Products() {
         </button>
       </div>
 
-      {/* 2. Search Bar */}
-      <div className="search-section">
-        <div className="search-input-wrapper">
+      {/* 2. Search & Filter Bar */}
+      <div className="search-section" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="search-input-wrapper" style={{ flex: 1, minWidth: '240px' }}>
           <Search size={18} className="search-icon" />
           <input 
             type="text" 
@@ -143,6 +149,42 @@ export default function Products() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={() => setFilterMode('all')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '20px',
+              border: filterMode === 'all' ? '1px solid #3b82f6' : '1px solid #cbd5e1',
+              backgroundColor: filterMode === 'all' ? '#eff6ff' : '#ffffff',
+              color: filterMode === 'all' ? '#1d4ed8' : '#64748b',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer'
+            }}
+          >
+            All Products
+          </button>
+          <button
+            onClick={() => setFilterMode('low-stock')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '20px',
+              border: filterMode === 'low-stock' ? '1px solid #f59e0b' : '1px solid #cbd5e1',
+              backgroundColor: filterMode === 'low-stock' ? '#fffbeb' : '#ffffff',
+              color: filterMode === 'low-stock' ? '#b45309' : '#64748b',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem'
+            }}
+          >
+            <AlertTriangle size={14} /> Low Stock Alert (≤10)
+          </button>
         </div>
       </div>
 
@@ -160,24 +202,34 @@ export default function Products() {
             </tr>
           </thead>
           <tbody>
-            {products.map(product => {
-              const status = getCalculatedStatus(product.stockQuantity);
-              return (
-                <tr key={product.id}>
-                  <td className="font-medium text-dark">{product.name}</td>
-                  <td className="text-muted">{product.itemWeight}</td>
-                  <td>₹{product.price.toFixed(2)}</td>
-                  <td>{product.stockQuantity}</td>
-                  <td>{getStatusBadge(status)}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button className="icon-btn" title="Edit" onClick={() => handleEditClick(product)}><Edit2 size={16} /></button>
-                      <button className="icon-btn danger" title="Delete" onClick={() => handleDeleteProduct(product.id)}><Trash2 size={16} /></button>
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
+            {products.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                  No products found matching criteria.
+                </td>
+              </tr>
+            ) : (
+              products.map(product => {
+                const status = getCalculatedStatus(product.stockQuantity);
+                return (
+                  <tr key={product.id}>
+                    <td className="font-medium text-dark">{product.name}</td>
+                    <td className="text-muted">{product.itemWeight}</td>
+                    <td>₹{product.price.toFixed(2)}</td>
+                    <td style={{ fontWeight: 600, color: product.stockQuantity <= 10 ? '#d97706' : '#1e293b' }}>
+                      {product.stockQuantity}
+                    </td>
+                    <td>{getStatusBadge(status)}</td>
+                    <td>
+                      <div className="action-buttons">
+                        <button className="icon-btn" title="Edit" onClick={() => handleEditClick(product)}><Edit2 size={16} /></button>
+                        <button className="icon-btn danger" title="Delete" onClick={() => handleDeleteProduct(product.id)}><Trash2 size={16} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>

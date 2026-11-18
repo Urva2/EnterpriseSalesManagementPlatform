@@ -6,17 +6,17 @@ import com.example.sale_entryApp.entity.SalesPerson;
 import com.example.sale_entryApp.entity.UserType;
 import com.example.sale_entryApp.repository.AdminRepositary;
 import com.example.sale_entryApp.repository.SalesPersonRepo;
-import jdk.jfr.Registered;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -26,9 +26,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     private SalesPersonRepo salesPersonRepo;
 
     @Override
-        public UserDetails loadUserByUsername(String username)
+    public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
+        // 1. Check Admin by name or email
         Admin admin = adminRepositary.findByName(username);
+        if (admin == null) {
+            admin = adminRepositary.findByEmail(username);
+        }
         if (admin != null) {
             return new AuthenticatedUser(
                     (long) admin.getId(),
@@ -40,8 +44,16 @@ public class CustomUserDetailsService implements UserDetailsService {
                     )
             );
         }
+
+        // 2. Check SalesPerson by name or email
         SalesPerson salesPerson = salesPersonRepo.findByName(username);
+        if (salesPerson == null) {
+            salesPerson = salesPersonRepo.findByEmail(username);
+        }
         if (salesPerson != null) {
+            if (Boolean.FALSE.equals(salesPerson.getIsActive())) {
+                throw new DisabledException("Account is deactivated. Contact administrator.");
+            }
             return new AuthenticatedUser(
                     (long) salesPerson.getId(),
                     salesPerson.getName(),
@@ -52,6 +64,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                     )
             );
         }
-        throw new UsernameNotFoundException("User not found");
+
+        throw new UsernameNotFoundException("User not found with username/email: " + username);
     }
 }

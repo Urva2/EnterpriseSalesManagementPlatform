@@ -6,6 +6,7 @@ import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 import Products from './pages/Products/Products';
 import Salespersons from './pages/Salespersons/Salespersons';
 import Orders from './pages/Orders/Orders';
+import Payments from './pages/Payments/Payments';
 
 import SalespersonLayout from './layouts/SalespersonLayout/SalespersonLayout';
 import SalespersonDashboard from './pages/SalespersonDashboard/SalespersonDashboard';
@@ -27,6 +28,7 @@ function App() {
         <Route path="products" element={<Products />} />
         <Route path="salespersons" element={<Salespersons />} />
         <Route path="orders" element={<Orders />} />
+        <Route path="payments" element={<Payments role="ADMIN" />} />
       </Route>
 
       {/* Nested Salesperson Routes */}
@@ -36,6 +38,7 @@ function App() {
         <Route path="customers" element={<SalespersonCustomers />} />
         <Route path="new-order" element={<SalespersonNewOrder />} />
         <Route path="orders" element={<SalespersonOrders />} />
+        <Route path="payments" element={<Payments role="SALES_PERSON" />} />
         <Route path="profile" element={<SalespersonProfile />} />
       </Route>
 

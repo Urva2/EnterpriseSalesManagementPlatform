@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Phone, Eye, EyeOff, ShoppingBag, AlertCircle } from 'lucide-react';
+import api from '../../services/api';
 import './Register.css';
 
 export default function Register() {
@@ -35,31 +36,18 @@ export default function Register() {
     }
 
     try {
-      const endpoint = role === 'Admin' 
-        ? `http://${window.location.hostname}:8080/admin/register` 
-        : `http://${window.location.hostname}:8080/salesperson/register`;
-      
+      const endpoint = role === 'Admin' ? '/admin/register' : '/salesperson/register';
       const bodyPayload = role === 'Admin' 
         ? { name, email, password } 
         : { name, email, password, phoneno: phone };
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bodyPayload),
-      });
-
-      if (!response.ok) {
-        const errorMsg = await response.text();
-        throw new Error(errorMsg || 'Registration failed');
-      }
+      await api.post(endpoint, bodyPayload);
 
       // Navigate to login after successful registration
       navigate('/login');
     } catch (err) {
-      setError(err.message || 'An error occurred during registration');
+      const errorMsg = err.response?.data?.message || err.response?.data || err.message || 'An error occurred during registration';
+      setError(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
     } finally {
       setIsLoading(false);
     }

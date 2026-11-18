@@ -44,12 +44,15 @@ public class BasicSecurity {
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
                 // 3. SalesPerson & Customer Endpoints
-                .requestMatchers(HttpMethod.POST, "/customers/register").hasRole("SALES_PERSON")
+                .requestMatchers("/customers/**").hasAnyRole("SALES_PERSON", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/salesperson/me").hasRole("SALES_PERSON")
                 .requestMatchers(HttpMethod.PATCH, "/salesperson/me").hasRole("SALES_PERSON")
                 .requestMatchers(HttpMethod.GET, "/salesperson", "/salesperson/search").hasRole("ADMIN")
 
-                // 4. Sale Order Endpoints (Admin specific management)
+                // 4. Specific Sale Order Endpoints
+                .requestMatchers("/payments/**").hasAnyRole("SALES_PERSON", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/orders/removeItem/**").hasRole("SALES_PERSON")
+                .requestMatchers(HttpMethod.GET, "/orders/{id}", "/orders/{id}/invoice").hasAnyRole("ADMIN", "SALES_PERSON")
                 .requestMatchers(HttpMethod.GET, "/orders/viewOrders", "/orders/search", "/orders/search-status").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/admin/dashboard/stats").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/orders/**").hasRole("ADMIN")

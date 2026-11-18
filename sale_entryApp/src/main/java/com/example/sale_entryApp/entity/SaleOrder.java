@@ -3,15 +3,13 @@ package com.example.sale_entryApp.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.aspectj.weaver.ast.Or;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -36,6 +34,25 @@ public class SaleOrder {
     @Column(nullable = false)
     private String status;
 
+    @Column
+    private String remarks;
+
+    @Column
+    private Double discountPercent = 0.0;
+
+    @Column
+    private Double discountAmount = 0.0;
+
+    @Column
+    private Double paidAmount = 0.0;
+
+    @Column
+    private String paymentStatus = "UNPAID";
+
+    @OneToMany(mappedBy = "saleOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "order-payments")
+    private List<Payment> payments;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="c_id")
     //@JsonBackReference(value = "customer-order")
@@ -51,10 +68,18 @@ public class SaleOrder {
     private List<OrderItem> orderItemList;
 
     public double calctotal(List<OrderItem> list){
-        double total=0.0;
-        for(OrderItem o:list){
-            total+=o.getSubtotal();
+        double subtotal = 0.0;
+        if (list != null) {
+            for(OrderItem o : list){
+                subtotal += o.getSubtotal();
+            }
         }
-        return total;
+        double discount = 0.0;
+        if (discountPercent != null && discountPercent > 0.0) {
+            discount = (subtotal * discountPercent) / 100.0;
+        }
+        this.discountAmount = discount;
+        double finalTotal = subtotal - discount;
+        return Math.max(0.0, finalTotal);
     }
 }

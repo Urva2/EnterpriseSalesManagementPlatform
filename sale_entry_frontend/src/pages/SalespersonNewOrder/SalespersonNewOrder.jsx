@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Phone, MapPin, Plus, ArrowRight, Check, User, X, ShoppingCart, Minus, Trash2, ArrowLeft } from 'lucide-react';
+import { Search, Phone, MapPin, Plus, ArrowRight, Check, User, X, ShoppingCart, Minus, Trash2, ArrowLeft, Tag } from 'lucide-react';
 import api from '../../services/api';
 import './SalespersonNewOrder.css';
 
@@ -23,7 +23,15 @@ export default function SalespersonNewOrder() {
 
   // Step 3 states
   const [orderRemarks, setOrderRemarks] = useState('');
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [showDiscountInput, setShowDiscountInput] = useState(false);
+  const [discountInputVal, setDiscountInputVal] = useState('');
   const [isOrderConfirmed, setIsOrderConfirmed] = useState(false);
+
+  // Initial Payment Collection State (#33, #34)
+  const [collectPaymentNow, setCollectPaymentNow] = useState(false);
+  const [initialPaymentMethod, setInitialPaymentMethod] = useState('CASH');
+  const [initialPaymentAmount, setInitialPaymentAmount] = useState('');
 
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
@@ -59,7 +67,8 @@ export default function SalespersonNewOrder() {
   const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
 
   const filteredCustomers = customers.filter(c => 
-    c.name.toLowerCase().includes(customerSearchQuery.toLowerCase())
+    (c.name && c.name.toLowerCase().includes(customerSearchQuery.toLowerCase())) ||
+    (c.phoneno && c.phoneno.includes(customerSearchQuery.trim()))
   );
 
   const handleNextStep = () => {
@@ -117,24 +126,71 @@ export default function SalespersonNewOrder() {
     return newOrderId;
   };
 
+  const discountAmount = discountPercent > 0 ? (totalCartValue * discountPercent) / 100 : 0;
+  const finalOrderTotal = Math.max(0, totalCartValue - discountAmount);
+
+  const handleApplyDiscount = (e) => {
+    e.preventDefault();
+    const val = parseFloat(discountInputVal);
+    if (!isNaN(val) && val >= 0 && val <= 100) {
+      setDiscountPercent(val);
+      setShowDiscountInput(false);
+    } else {
+      alert("Discount must be between 0 and 100%");
+    }
+  };
+
   const confirmOrder = async () => {
     if(!selectedCustomerId || cartItems.length === 0) return;
     setIsSubmitting(true);
     try {
-      const id = await getOrCreateOrderId();
-      
-      const payload = {
-        items: cartItems.map(item => ({
-          productId: item.id,
-          quantity: item.quantity
-        }))
-      };
+      // 1. Create Empty Cart / Order
+      const cartRes = await api.post(`/orders/createCart/${selectedCustomerId}`);
+      const orderId = cartRes.data.id;
 
-      await api.post(`/orders/${id}/checkout`, payload);
+      // 2. Add each product in cart
+      for(let item of cartItems) {
+        await api.post(`/orders/${item.id}/addToCart/${orderId}?quantity=${item.quantity}`);
+      }
+
+      // 3. Save remarks if provided (#25)
+      if (orderRemarks && orderRemarks.trim()) {
+        try {
+          await api.put(`/orders/${orderId}/remarks`, { remarks: orderRemarks.trim() });
+        } catch (e) {
+          console.warn('Remarks saving note:', e);
+        }
+      }
+
+      // 4. Save discount if applied (#23)
+      if (discountPercent > 0) {
+        try {
+          await api.put(`/orders/${orderId}/discount?percent=${discountPercent}`);
+        } catch (e) {
+          console.warn('Discount saving note:', e);
+        }
+      }
+
+      // 5. Record initial payment if requested (#33, #34)
+      if (collectPaymentNow) {
+        const payVal = parseFloat(initialPaymentAmount);
+        if (!isNaN(payVal) && payVal > 0) {
+          try {
+            await api.post(`/payments/orders/${orderId}`, {
+              amount: payVal,
+              paymentMethod: initialPaymentMethod,
+              remarks: 'Payment collected at order creation'
+            });
+          } catch (e) {
+            console.warn('Initial payment recording error:', e);
+          }
+        }
+      }
+      
       setIsOrderConfirmed(true);
     } catch (err) {
       console.error('Failed to confirm order:', err);
-      alert(err.response?.data || 'Failed to place order. Please try again.');
+      alert(err.response?.data?.message || err.response?.data || 'Failed to place order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -171,6 +227,10 @@ export default function SalespersonNewOrder() {
     setOrderId(null);
     setCartItems([]);
     setOrderRemarks('');
+    setDiscountPercent(0);
+    setDiscountInputVal('');
+    setCollectPaymentNow(false);
+    setInitialPaymentAmount('');
     setIsOrderConfirmed(false);
   };
 
@@ -222,14 +282,14 @@ export default function SalespersonNewOrder() {
     <div className="new-order-content-wrapper">
       <div className="new-order-header">
         <h2>Select a Customer</h2>
-        <p>Choose a customer for this order</p>
+        <p>Choose a customer for this order or search by phone/name</p>
       </div>
 
       <div className="sp-search-wrapper">
         <Search size={18} className="search-icon" />
         <input 
           type="text" 
-          placeholder="Search customers by name..." 
+          placeholder="Search customers by name or phone..." 
           value={customerSearchQuery}
           onChange={(e) => setCustomerSearchQuery(e.target.value)}
         />
@@ -266,7 +326,7 @@ export default function SalespersonNewOrder() {
             </div>
           );
         })}
-        <button className="btn-ghost-blue register-new-btn">
+        <button className="btn-ghost-blue register-new-btn" onClick={() => navigate('/salesperson/customers')}>
           <Plus size={18} /> Register New Customer
         </button>
       </div>
@@ -469,7 +529,7 @@ export default function SalespersonNewOrder() {
 
       <div className="review-header">
         <h2>Review Your Order</h2>
-        <p>Adjust quantities before confirming</p>
+        <p>Adjust quantities, apply discount, or add remarks</p>
       </div>
 
       {/* Cart Items List */}
@@ -480,7 +540,6 @@ export default function SalespersonNewOrder() {
             <div className="review-item-left">
               <h4>{item.name}</h4>
               <span className="review-weight-pill">{item.itemWeight}</span>
-              {/* On mobile, price is grouped with left details */}
               <div className="review-mobile-price hidden-desktop">
                 ₹{item.price.toFixed(2)} each
               </div>
@@ -512,31 +571,130 @@ export default function SalespersonNewOrder() {
         ))}
       </div>
 
-      {/* Order Summary */}
+      {/* Order Summary (#23) */}
       <div className="order-summary-section">
         <div className="summary-card">
           <div className="summary-row">
             <span>Subtotal ({totalCartItems} items)</span>
             <strong>₹{totalCartValue.toFixed(2)}</strong>
           </div>
+          
           <div className="summary-row">
-            <span>Discount <a href="#" className="apply-discount-link">Apply Discount</a></span>
-            <strong>₹0.00</strong>
+            <span>
+              Discount {discountPercent > 0 && `(${discountPercent}%)`}{' '}
+              <button 
+                type="button" 
+                className="apply-discount-link" 
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                onClick={() => setShowDiscountInput(!showDiscountInput)}
+              >
+                {discountPercent > 0 ? 'Change Discount' : 'Apply Discount'}
+              </button>
+            </span>
+            <strong style={{ color: discountAmount > 0 ? '#10b981' : 'inherit' }}>
+              -₹{discountAmount.toFixed(2)}
+            </strong>
           </div>
+
+          {showDiscountInput && (
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+              <input 
+                type="number" 
+                placeholder="Discount % (e.g. 10)" 
+                min="0" 
+                max="100"
+                value={discountInputVal}
+                onChange={e => setDiscountInputVal(e.target.value)}
+                style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #cbd5e1', width: '150px' }}
+              />
+              <button 
+                type="button"
+                onClick={handleApplyDiscount}
+                style={{
+                  padding: '0.4rem 0.8rem', backgroundColor: '#3b82f6', color: '#fff',
+                  border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer'
+                }}
+              >
+                Apply
+              </button>
+            </div>
+          )}
+
           <div className="summary-divider"></div>
           <div className="summary-row summary-total">
             <span>Order Total</span>
-            <strong>₹{totalCartValue.toFixed(2)}</strong>
+            <strong>₹{finalOrderTotal.toFixed(2)}</strong>
+          </div>
+
+          {/* Collect Payment Now (#33, #34) */}
+          <div style={{
+            marginTop: '1rem',
+            padding: '1rem',
+            background: collectPaymentNow ? '#f0fdf4' : '#f8fafc',
+            border: collectPaymentNow ? '1.5px solid #86efac' : '1px solid #e2e8f0',
+            borderRadius: '10px',
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>
+                <input
+                  type="checkbox"
+                  style={{ width: '18px', height: '18px', accentColor: '#16a34a', cursor: 'pointer' }}
+                  checked={collectPaymentNow}
+                  onChange={(e) => {
+                    setCollectPaymentNow(e.target.checked);
+                    if (e.target.checked) setInitialPaymentAmount(finalOrderTotal.toFixed(2));
+                  }}
+                />
+                <span>💳 Collect Payment Now (Optional)</span>
+              </label>
+              {collectPaymentNow && (
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#dcfce7', color: '#166534', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
+                  PAYMENT ENABLED
+                </span>
+              )}
+            </div>
+
+            {collectPaymentNow && (
+              <div style={{ marginTop: '0.85rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #e2e8f0' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>Amount to Pay (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max={finalOrderTotal}
+                    value={initialPaymentAmount}
+                    onChange={(e) => setInitialPaymentAmount(e.target.value)}
+                    placeholder="Enter amount"
+                    style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600, fontSize: '0.95rem' }}
+                  />
+                  <small style={{ color: '#64748b', fontSize: '0.75rem' }}>Max ₹{finalOrderTotal.toFixed(2)} (Partial or Full)</small>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>Payment Method</label>
+                  <select
+                    value={initialPaymentMethod}
+                    onChange={(e) => setInitialPaymentMethod(e.target.value)}
+                    style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600, fontSize: '0.95rem', background: '#fff' }}
+                  >
+                    <option value="CASH">💵 Cash</option>
+                    <option value="CARD">💳 Card</option>
+                    <option value="UPI">📱 UPI / QR</option>
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Order Remarks */}
+      {/* Order Remarks (#25) */}
       <div className="order-remarks-section">
         <label>Order Remarks (Optional)</label>
         <textarea 
           rows="3" 
-          placeholder="Add notes or special instructions..."
+          placeholder="Add notes, special instructions, or delivery guidelines..."
           value={orderRemarks}
           onChange={(e) => setOrderRemarks(e.target.value)}
         ></textarea>
@@ -576,7 +734,7 @@ export default function SalespersonNewOrder() {
 
           <div className="success-total-box">
             <span>Order Total:</span>
-            <strong>₹{totalCartValue.toFixed(2)}</strong>
+            <strong>₹{finalOrderTotal.toFixed(2)}</strong>
           </div>
 
           <div className="success-actions">
