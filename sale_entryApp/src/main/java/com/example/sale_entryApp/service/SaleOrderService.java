@@ -19,8 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.sale_entryApp.dto.RequestDto.CartItemDTO;
-import com.example.sale_entryApp.repository.ProductRepo;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -42,8 +40,6 @@ public class SaleOrderService {
     private OrderItemRepo orderItemRepo;
     @Autowired
     private ProductRepo productRepo;
-    @Autowired
-    private ProductService productService;
 
     public static AuthenticatedUser isAuthenticated(Authentication authentication){
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -54,6 +50,7 @@ public class SaleOrderService {
         }
         return user;
     }
+
     @Transactional
     public SaleOrderDTO createSaleOrder(int salespersonId, int customerId) //crt-slorder
     {
@@ -70,18 +67,6 @@ public class SaleOrderService {
             return saleOrderMapper.saleOrderDto(saved);
         }
         throw new RuntimeException("Error!Customer or SalesPerson Id not Valid.");
-    }
-
-    //Updates The Stock of Product after Order is either deleted or it's Status Changes to Cancelled
-    public void cancelOrder(int orderId){
-        List<Object[]> saleOrderOrderItemList=orderItemRepo.findProductIdsAndQuantitiesByOrderId(orderId);
-        if (saleOrderOrderItemList != null) {
-            for (Object[] row: saleOrderOrderItemList) {
-                Integer productId=(Integer) row[0];
-                Integer quantity=(Integer) row[1];
-                productService.incrementStock(productId,quantity);
-            }
-        }
     }
 
     @Transactional
@@ -140,7 +125,6 @@ public class SaleOrderService {
 //        throw new RuntimeException("Error!! SaleOrders Not Found.");
 //    }
 
-    //Order is Kept(For Financial Report) but Product Stock is Released
     @Transactional
     public SaleOrderDTO deleteSaleOrderById(int id){
         SaleOrder saleOrder = saleOrderRepo.findById(id);
@@ -157,6 +141,7 @@ public class SaleOrderService {
         //   System.out.println("Order Status:"+saleOrder.getStatus());
         saleOrderRepo.save(saleOrder);
         return saleOrderMapper.saleOrderDto(saleOrder);
+
     }
 
     @Transactional
@@ -180,18 +165,30 @@ public class SaleOrderService {
 
         return saleOrderMapper.saleOrderDto(saleOrder);
     }
-
-//    public double cal_revenue(int s_personId){
-//        List<SaleOrder> saleOrders=saleOrderRepo.findBySalesPersonId(s_personId);
-//        double totalrev=0.0;
-//        if(!saleOrders.isEmpty())
-//        {
-//            for(SaleOrder s:saleOrders){
-//                totalrev+=s.getTotal();
-//            }
-//            return totalrev;
+//    public List<SaleOrderDTO> deleteAllSaleOrder(){
+//        List<SaleOrder> saleOrders=saleOrderRepo.findAll();
+//        if(!saleOrders.isEmpty()){
+//            saleOrderRepo.deleteAll();
+//            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
 //        }
-//        return totalrev;
+//        throw new RuntimeException("Error!Order Not Found.");
+//    }
+//    public List<SaleOrderDTO> deleteSaleOrderBySalesPersonId(int id){
+//        List<SaleOrder> saleOrders=saleOrderRepo.findBySalesPersonId(id);
+//        if(!saleOrders.isEmpty()){
+//            saleOrderRepo.deleteAll(saleOrders);
+//            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
+//        }
+//        throw new RuntimeException("SalesPerson With Id:"+id+" Has Not Any Orders.");
+//    }
+
+//    public List<SaleOrderDTO> deleteSaleOrderByCustomerId(int id){
+//        List<SaleOrder> saleOrders=saleOrderRepo.findByCustomerId(id);
+//        if(!saleOrders.isEmpty()){
+//            saleOrderRepo.deleteAll(saleOrders);
+//            return saleOrderMapper.toDtoSaleOrderList(saleOrders);
+//        }
+//        throw new RuntimeException("Customer With Id:"+id+" Has Not Any Orders.");
 //    }
 
 //    public List<SaleOrderDTO> deleteSaleOrderByStatus(String status){
@@ -375,113 +372,5 @@ public class SaleOrderService {
         int id=Math.toIntExact(user.getId());
         Page<SaleOrder> saleOrders=saleOrderRepo.findByStatusContainingIgnoreCaseAndSalesPersonId(status,id,pageable);
         return saleOrders.map(saleOrderMapper::saleOrderDto);
-    }
-    private double syncCartItems(SaleOrder saleOrder, List<CartItemDTO> items, boolean deductStock) {
-        if (saleOrder.getOrderItemList() != null && !saleOrder.getOrderItemList().isEmpty()) {
-            orderItemRepo.deleteAll(saleOrder.getOrderItemList());
-            saleOrder.getOrderItemList().clear();
-        } else if (saleOrder.getOrderItemList() == null) {
-            saleOrder.setOrderItemList(new ArrayList<>());
-        }
-
-        double total = 0.0;
-
-        if (items != null) {
-            for (CartItemDTO itemDto : items) {
-                Product product = productRepo.findById(itemDto.getProductId());
-
-                if (product != null && product.getIsActive()) {
-
-                    if (deductStock) {
-                        product.setStockQuantity(
-                                product.getStockQuantity() - itemDto.getQuantity()
-                        );
-                        productRepo.save(product);
-                    }
-
-                    OrderItem orderItem = new OrderItem();
-                    orderItem.setSaleOrder(saleOrder);
-                    orderItem.setProduct(product);
-                    orderItem.setQuantity(itemDto.getQuantity());
-                    orderItem.setName(product.getName());
-                    orderItem.setPrice(product.getPrice());
-
-                    double subtotal =
-                            product.getPrice() * itemDto.getQuantity();
-
-                    orderItem.setSubtotal(subtotal);
-
-                    orderItemRepo.save(orderItem);
-                    saleOrder.getOrderItemList().add(orderItem);
-
-                    total += subtotal;
-                }
-            }
-        }
-
-        return total;
-    }
-
-    @Transactional
-    public SaleOrderDTO saveDraft(int orderId, List<CartItemDTO> items) {
-
-        SaleOrder saleOrder = saleOrderRepo.findById(orderId);
-
-        if (saleOrder == null) {
-            throw new RuntimeException("Sale Order Not Found");
-        }
-
-        double total = syncCartItems(saleOrder, items, false);
-
-        saleOrder.setTotal(total);
-        saleOrder.setStatus("DRAFT");
-
-        SaleOrder saved = saleOrderRepo.save(saleOrder);
-
-        return saleOrderMapper.saleOrderDto(saved);
-    }
-
-    @Transactional
-    public SaleOrderDTO confirmAndCheckout(
-            int orderId,
-            List<CartItemDTO> items) {
-
-        SaleOrder saleOrder = saleOrderRepo.findById(orderId);
-
-        if (saleOrder == null) {
-            throw new RuntimeException("Sale Order Not Found");
-        }
-
-        if (items == null || items.isEmpty()) {
-            throw new RuntimeException("Cannot checkout an empty cart.");
-        }
-
-        // 1. Validate Stock first
-        for (CartItemDTO itemDto : items) {
-
-            Product product = productRepo.findById(itemDto.getProductId());
-
-            if (product == null || !product.getIsActive()) {
-                throw new RuntimeException("Product is no longer available.");
-            }
-
-            if (product.getStockQuantity() < itemDto.getQuantity()) {
-                throw new RuntimeException(
-                        "Product " + product.getName()
-                                + " only has " + product.getStockQuantity()
-                                + " units left. Please update your cart."
-                );
-            }
-        }
-
-        // 2. Clear existing items and deduct stock
-        double total = syncCartItems(saleOrder, items, true);
-
-        saleOrder.setTotal(total);
-        saleOrder.setStatus("COMPLETED");
-
-        SaleOrder saved = saleOrderRepo.save(saleOrder);
-
-        return saleOrderMapper.saleOrderDto(saved);
     }
 }
