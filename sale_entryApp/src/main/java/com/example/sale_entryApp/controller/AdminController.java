@@ -1,3 +1,4 @@
+
 package com.example.sale_entryApp.controller;
 
 import com.example.sale_entryApp.dto.RequestDto.AdminRequestDto;
@@ -9,7 +10,9 @@ import com.example.sale_entryApp.service.AdminService;
 import com.example.sale_entryApp.service.ProductService;
 import com.example.sale_entryApp.service.ReportService;
 import com.example.sale_entryApp.service.SalesPersonService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
+
     @Autowired
     private AdminService adminService;
 
@@ -36,46 +40,79 @@ public class AdminController {
     private SalesPersonService salesPersonService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> addAdmin(@Valid @RequestBody AdminRequestDto admin){
-        try{
+    public ResponseEntity<?> addAdmin(
+            @Valid @RequestBody AdminRequestDto admin) {
+
+        try {
             System.out.println(admin.getName());
-            AdminDTO savesAdmin=adminService.createAdmin(admin);
+
+            AdminDTO savesAdmin = adminService.createAdmin(admin);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(savesAdmin);
+
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
     }
 
     @GetMapping("/customers/{id}/history")
-    public ResponseEntity<List<SaleOrderDTO>> getCustomerPurchaseHistory(@PathVariable int id)
-    {
-        return ResponseEntity.ok(reportService.getCustomerPurchaseHistory(id));
+    public ResponseEntity<List<SaleOrderDTO>> getCustomerPurchaseHistory(
+            @PathVariable int id) {
+
+        return ResponseEntity.ok(
+                reportService.getCustomerPurchaseHistory(id)
+        );
     }
 
+    // Paginated low-stock products
     @GetMapping("/products/low-stock")
     public ResponseEntity<Page<ProductDTO>> getLowStockProducts(
             @RequestParam(defaultValue = "10") int threshold,
             @PageableDefault(page = 0, size = 10) Pageable pageable) {
-        return ResponseEntity.ok(productService.getLowStockProducts(threshold, pageable));
+
+        return ResponseEntity.ok(
+                productService.getLowStockProducts(threshold, pageable)
+        );
+    }
+
+    // Non-paginated low-stock products
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<ProductDTO>> getLowStockProductsList(
+            @RequestParam(defaultValue = "10") int threshold) {
+
+        return ResponseEntity.ok(
+                productService.getLowStockProducts(threshold)
+        );
     }
 
     @PutMapping("/salespersons/{id}/deactivate")
     public ResponseEntity<?> deactivateSalesPerson(@PathVariable int id) {
+
         try {
-            SalesPersonDTO dto = salesPersonService.deactivateSalesPerson(id);
+            SalesPersonDTO dto =
+                    salesPersonService.deactivateSalesPerson(id);
+
             return ResponseEntity.ok(dto);
+
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
         }
     }
 
     @PutMapping("/salespersons/{id}/activate")
     public ResponseEntity<?> activateSalesPerson(@PathVariable int id) {
+
         try {
-            SalesPersonDTO dto = salesPersonService.activateSalesPerson(id);
+            SalesPersonDTO dto =
+                    salesPersonService.activateSalesPerson(id);
+
             return ResponseEntity.ok(dto);
+
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
         }
     }
 }

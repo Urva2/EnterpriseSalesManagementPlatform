@@ -261,6 +261,7 @@ public class SaleOrderController {
         Page<SaleOrderDTO> orders = saleOrderService.searchSaleOrdersByStatus(status, pageable);
         return ResponseEntity.ok(orders);
     }
+
 }
 
 //http://localhost:8080/orders

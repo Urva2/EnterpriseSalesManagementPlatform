@@ -3,6 +3,7 @@ package com.example.sale_entryApp.service;
 import com.example.sale_entryApp.dto.InvoiceDto;
 import com.example.sale_entryApp.dto.InvoiceItemDto;
 import com.example.sale_entryApp.dto.ResponseDto.AuthenticatedUser;
+import com.example.sale_entryApp.dto.ResponseDto.ProductDTO;
 import com.example.sale_entryApp.dto.ResponseDto.SaleOrderDTO;
 import com.example.sale_entryApp.entity.*;
 import com.example.sale_entryApp.mapper.SaleOrderMapper;

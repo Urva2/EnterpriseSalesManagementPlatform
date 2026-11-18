@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Lock, Eye, EyeOff, ShoppingBag, AlertCircle } from 'lucide-react';
+import {
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  ShoppingBag,
+  AlertCircle
+} from 'lucide-react';
 import api from '../../services/api';
 import './Login.css';
 
@@ -25,42 +32,65 @@ export default function Login() {
     }
 
     try {
-      const response = await api.post('/auth/login', { name: name.trim(), password: password.trim() });
-      
+      const response = await api.post('/auth/login', {
+        name: name.trim(),
+        password: password.trim()
+      });
+
       const data = response.data;
-      
+
       // Store token and user info
       localStorage.setItem('token', data.jwt);
       localStorage.setItem('userName', data.userName);
-      
-      // Parse role from JWT to navigate appropriately
+
+      // Parse role from JWT
       try {
         const payload = JSON.parse(atob(data.jwt.split('.')[1]));
-        console.log("Logged in payload:", payload);
+        const roles = payload['ROLE:'];
+        const roleString = JSON.stringify(roles || '');
 
-        if (payload.role === 'ADMIN') {
+        if (
+          roleString.includes('ROLE_ADMIN') ||
+          roleString.includes('ADMIN') ||
+          payload.role === 'ADMIN'
+        ) {
           navigate('/admin/dashboard');
-        } else if (payload.role === 'SALES_PERSON') {
+        } else if (
+          roleString.includes('ROLE_SALES_PERSON') ||
+          roleString.includes('SALES_PERSON') ||
+          payload.role === 'SALES_PERSON'
+        ) {
           navigate('/salesperson/dashboard');
         } else {
           navigate('/salesperson/dashboard');
         }
-      } catch (e) {
-        console.error("Failed to parse JWT role:", e);
-        navigate('/salesperson/dashboard'); // fallback
+      } catch (jwtError) {
+        console.error('Failed to parse JWT role:', jwtError);
+        navigate('/salesperson/dashboard');
       }
+
     } catch (err) {
-      console.error("Login error:", err);
+      console.error('Login error:', err);
+
       if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
-        setError('Cannot connect to backend server. Make sure Spring Boot is running on port 8080.');
+        setError(
+          'Cannot connect to backend server. Make sure Spring Boot is running on port 8080.'
+        );
       } else {
-        const serverMsg = err.response?.data?.msg || err.response?.data?.message || err.response?.data;
+        const serverMsg =
+          err.response?.data?.msg ||
+          err.response?.data?.message ||
+          err.response?.data;
+
         if (typeof serverMsg === 'string') {
           setError(serverMsg);
         } else {
-          setError('Invalid credentials. Please check your username/email and password.');
+          setError(
+            'Invalid credentials. Please check your username/email and password.'
+          );
         }
       }
+
     } finally {
       setIsLoading(false);
     }
@@ -93,10 +123,10 @@ export default function Login() {
             <label htmlFor="username">Username or Email</label>
             <div className={`input-wrapper ${error ? 'input-error' : ''}`}>
               <User size={18} className="input-icon" />
-              <input 
+              <input
                 id="username"
-                type="text" 
-                placeholder="Enter your username or email" 
+                type="text"
+                placeholder="Enter your username or email"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="username"
@@ -108,17 +138,17 @@ export default function Login() {
             <label htmlFor="password">Password</label>
             <div className={`input-wrapper ${error ? 'input-error' : ''}`}>
               <Lock size={18} className="input-icon" />
-              <input 
+              <input
                 id="password"
-                type={showPassword ? "text" : "password"} 
-                placeholder="Enter your password" 
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
               />
-              <button 
-                type="button" 
-                className="toggle-password" 
+              <button
+                type="button"
+                className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label="Toggle password visibility"
               >
@@ -127,7 +157,11 @@ export default function Login() {
             </div>
           </div>
 
-          <button type="submit" className="login-submit" disabled={isLoading}>
+          <button
+            type="submit"
+            className="login-submit"
+            disabled={isLoading}
+          >
             {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>

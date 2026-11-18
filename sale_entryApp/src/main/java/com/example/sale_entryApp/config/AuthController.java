@@ -1,3 +1,4 @@
+
 package com.example.sale_entryApp.config;
 
 import com.example.sale_entryApp.dto.RequestDto.ChangePasswordRequestDto;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+
     @Autowired
     private AuthService authService;
 
@@ -26,21 +28,31 @@ public class AuthController {
 
     @Autowired
     private RefreshTokenService refreshTokenService;
+
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
+
     @Autowired
     private AuthUtil authUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequestDto loginRequestDto,
-                                       HttpServletResponse response){
+    public ResponseEntity<?> loginUser(
+            @RequestBody LoginRequestDto loginRequestDto,
+            HttpServletResponse response) {
+
         return ResponseEntity.ok(authService.login(loginRequestDto, response));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> refresh(
+            HttpServletRequest request,
+            HttpServletResponse response) {
+
         String rawToken = cookieUtil.extractRefreshToken(request);
-        if (rawToken == null) return ResponseEntity.status(401).body("No refresh token");
+
+        if (rawToken == null) {
+            return ResponseEntity.status(401).body("No refresh token");
+        }
 
         RefreshToken stored = refreshTokenService.validateAndGet(rawToken);
 
@@ -53,32 +65,46 @@ public class AuthController {
 
         // Rotate refresh token: revoke old, issue new
         refreshTokenService.revoke(stored);
+
         String newRawRefreshToken = refreshTokenService.createRefreshToken(user);
         cookieUtil.addRefreshTokenCookie(response, newRawRefreshToken);
 
-        return ResponseEntity.ok(new LoginResponseDto(newAccessToken, user.getUsername()));
+        return ResponseEntity.ok(
+                new LoginResponseDto(newAccessToken, user.getUsername())
+        );
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> logout(
+            HttpServletRequest request,
+            HttpServletResponse response) {
+
         String rawToken = cookieUtil.extractRefreshToken(request);
+
         if (rawToken != null) {
             try {
                 RefreshToken stored = refreshTokenService.validateAndGet(rawToken);
                 refreshTokenService.revoke(stored);
-            } catch (Exception ignored) { /* Already invalid, still clear cookie */ }
+            } catch (Exception ignored) {
+                // Already invalid, still clear cookie
+            }
         }
+
         cookieUtil.clearRefreshTokenCookie(response);
+
         return ResponseEntity.ok("Logged out");
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequestDto dto) {
+    public ResponseEntity<?> changePassword(
+            @Valid @RequestBody ChangePasswordRequestDto dto) {
+
         try {
             authService.changePassword(dto);
             return ResponseEntity.ok("Password changed successfully.");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
     }
 }

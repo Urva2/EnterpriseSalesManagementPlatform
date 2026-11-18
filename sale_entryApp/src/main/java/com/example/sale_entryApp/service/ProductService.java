@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -111,5 +112,10 @@ public class ProductService {
     public Page<ProductDTO> getLowStockProducts(int threshold, Pageable pageable) {
         return productRepo.findByStockQuantityLessThanEqualAndIsActiveTrue(threshold, pageable)
                 .map(productMapper::productDto);
+    }
+
+    public List<ProductDTO> getLowStockProducts(int threshold){
+        List<Product> products = productRepo.findByStockQuantityLessThanEqualAndIsActiveTrue(threshold);
+        return products.stream().map(productMapper::productDto).toList();
     }
 }
